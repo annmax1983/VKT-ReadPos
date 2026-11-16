@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReadPos — The page remembers where you stopped.</title>
+<meta name="description" content="ReadPos puts your reading position back on every long page. And when a page holds state that a scroll offset cannot describe — a dashboard, a half-filled form, a ticket you were writing — it saves the whole scene and puts every field back.">
+<link rel="icon" href="icons/icon128.png">
+<style>
+:root{
+  --accent:#0a6b62;
+  --accent-2:#0d8378;
+  --bg:#f4f8f7;
+  --surface:#ffffff;
+  --ink:#122a2f;
+  --body:#43585c;
+  --muted:#667c80;
+  --line:#dde8e6;
+  --tint:#eef6f4;
+  --tint:color-mix(in srgb, var(--accent) 8%, #ffffff);
+  --tint-strong:#cfe9e4;
+  --tint-strong:color-mix(in srgb, var(--accent) 14%, #ffffff);
+  --shadow:0 18px 45px rgba(18,42,47,.10);
+  --shadow-soft:0 8px 24px rgba(18,42,47,.06);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{
+  margin:0;
+  color:var(--body);
+  background:radial-gradient(900px 420px at 100% -8%, color-mix(in srgb, var(--accent-2) 12%, #ffffff) 0%, rgba(255,255,255,0) 70%), var(--bg);
+  font-family:"Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img{display:block;max-width:100%}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button,select{font:inherit}
+[hidden]{display:none !important}
+::selection{background:color-mix(in srgb, var(--accent) 22%, #ffffff);color:var(--ink)}
+:focus-visible{outline:2px solid color-mix(in srgb, var(--accent) 55%, #ffffff);outline-offset:3px}
+.wrap{width:min(1120px, calc(100% - 40px));margin:0 auto}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.topbar-inner{display:flex;align-items:center;gap:18px;height:70px}
+.brand{display:flex;align-items:center;gap:11px;color:var(--ink);font-size:16px;font-weight:750;letter-spacing:-.015em;white-space:nowrap}
+.brand:hover{text-decoration:none}
+.brand img{width:32px;height:32px;border-radius:9px;background:#fff;border:1px solid var(--line)}
+.nav-links{display:flex;align-items:center;gap:20px;margin-left:auto;font-size:13.5px;font-weight:650}
+.nav-links a{color:var(--muted)}
+.nav-links a:hover{color:var(--accent);text-decoration:none}
+.top-actions{display:flex;align-items:center;gap:9px;margin-left:auto}
+.nav-links + .top-actions{margin-left:0}
+.lang{
+  appearance:none;-webkit-appearance:none;
+  border:1px solid var(--line);
+  background-color:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238d878c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  background-size:12px;
+  color:var(--ink);
+  border-radius:10px;
+  padding:9px 32px 9px 11px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  max-width:150px;
+}
+.lang:hover{border-color:color-mix(in srgb, var(--accent) 26%, var(--line))}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:0 20px;border-radius:12px;border:1px solid transparent;font-weight:700;font-size:14.5px;line-height:1.2;transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease}
+.btn:hover{text-decoration:none;transform:translateY(-1px)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 12px 26px color-mix(in srgb, var(--accent) 26%, transparent)}
+.btn-primary:hover{background:color-mix(in srgb, var(--accent) 90%, var(--ink));box-shadow:0 15px 30px color-mix(in srgb, var(--accent) 30%, transparent)}
+.btn-secondary{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn-secondary:hover{border-color:color-mix(in srgb, var(--accent) 28%, var(--line))}
+.site-footer{margin-top:48px;border-top:1px solid var(--line);background:rgba(255,255,255,.8);padding:32px 0}
+.footer-inner{display:flex;flex-wrap:wrap;gap:20px 32px;align-items:center;justify-content:space-between}
+.footer-brand{display:flex;align-items:center;gap:11px;color:var(--ink);font-size:14px;font-weight:700}
+.footer-brand img{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:#fff}
+.footer-brand .copy{display:block;color:var(--muted);font-size:12px;font-weight:500;line-height:1.4;margin-top:1px}
+.footer-links{display:flex;flex-wrap:wrap;gap:9px 18px;align-items:center;font-size:13px;font-weight:600}
+.footer-links a{color:var(--muted)}
+.footer-links a:hover{color:var(--accent);text-decoration:none}
+@media (max-width:900px){
+  .nav-links{display:none}
+  .topbar-inner{height:62px}
+  .wrap{width:calc(100% - 32px)}
+}
+@media (max-width:560px){
+  .brand span{display:none}
+  .lang{max-width:124px}
+  .site-footer{padding:26px 0}
+  .footer-inner{align-items:flex-start;flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none !important;animation:none !important}
+}
+
+.hero{position:relative;overflow:hidden;padding:66px 0 44px}
+.hero::before{content:"";position:absolute;right:-160px;top:-220px;width:780px;height:780px;border-radius:50%;background:radial-gradient(circle, color-mix(in srgb, var(--accent-2) 20%, rgba(255,255,255,0)) 0%, rgba(255,255,255,0) 68%);pointer-events:none}
+.hero-grid{position:relative;display:grid;grid-template-columns:minmax(0,1.18fr) minmax(300px,.82fr);gap:54px;align-items:center}
+.hero-copy{min-width:0}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;border:1px solid color-mix(in srgb, var(--accent) 22%, var(--line));background:color-mix(in srgb, var(--accent) 7%, #ffffff);color:var(--accent);font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.hero h1{margin:16px 0 14px;color:var(--ink);font-size:clamp(36px,4.9vw,58px);line-height:1.04;letter-spacing:-.04em;font-weight:800;overflow-wrap:anywhere}
+.tagline{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 20px}
+.tagline span{padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.8);color:var(--muted);font-size:12.5px;font-weight:650}
+.lead{max-width:680px;margin:0 0 22px;color:var(--body);font-size:17px;line-height:1.72}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px}
+.badge{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font-size:12.5px;font-weight:650}
+.badge svg{color:var(--accent)}
+.cta-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.micro{margin:16px 0 0;color:var(--muted);font-size:12.5px;font-weight:550}
+.app-card{position:relative;overflow:hidden;padding:32px 28px 24px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(160deg,#ffffff 0%, color-mix(in srgb, var(--accent) 7%, #ffffff) 100%);box-shadow:var(--shadow);text-align:center}
+.app-card-glow{position:absolute;width:220px;height:220px;left:50%;top:-120px;transform:translateX(-50%);border-radius:50%;background:color-mix(in srgb, var(--accent-2) 20%, rgba(255,255,255,0));filter:blur(8px)}
+.app-icon{position:relative;width:108px;height:108px;margin:6px auto 18px;padding:11px;border-radius:26px;background:#fff;border:1px solid var(--line);box-shadow:0 16px 30px rgba(18,42,47,.14)}
+.app-icon img{width:100%;height:100%;object-fit:contain;border-radius:18px}
+.app-name{position:relative;color:var(--ink);font-size:23px;font-weight:800;letter-spacing:-.02em}
+.app-sub{position:relative;margin:4px 0 20px;color:var(--muted);font-size:12.5px;font-weight:600}
+.app-points{position:relative;display:grid;gap:8px;text-align:left}
+.app-points div{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.72);color:var(--body);font-size:13px;line-height:1.45}
+.app-points svg{flex:none;margin-top:2px;color:var(--accent)}
+.app-footer{position:relative;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;font-weight:650}
+.app-footer svg{color:var(--accent)}
+.block{padding:56px 0}
+.section-head{max-width:720px;margin:0 0 26px}
+.kicker{margin:0 0 9px;color:var(--accent);font-size:11.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}
+.section-head h2,.support-copy h2{margin:0 0 10px;color:var(--ink);font-size:clamp(27px,3.2vw,37px);line-height:1.15;letter-spacing:-.025em;font-weight:800}
+.section-head p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.65}
+.feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.feature{padding:21px 21px 23px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow-soft);transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease}
+.feature:hover{transform:translateY(-2px);border-color:color-mix(in srgb, var(--accent) 22%, var(--line));box-shadow:0 14px 32px rgba(18,42,47,.09)}
+.feature .num{display:inline-flex;align-items:center;justify-content:center;width:33px;height:33px;margin-bottom:13px;border-radius:10px;background:var(--tint);color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.04em}
+.feature p{margin:0;color:var(--body);font-size:14px;line-height:1.66}
+.more-panel{margin-top:15px;padding:22px 24px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow-soft)}
+.more-panel h3{margin:0 0 13px;color:var(--ink);font-size:13.5px;font-weight:750}
+.more-list{display:grid;grid-template-columns:1fr 1fr;gap:9px 28px;margin:0;padding:0;list-style:none}
+.more-list li{position:relative;padding-left:19px;color:var(--body);font-size:13.5px;line-height:1.55}
+.more-list li::before{content:"";position:absolute;left:1px;top:.6em;width:7px;height:7px;border-radius:2px;background:var(--accent-2)}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.plan{padding:26px 27px;border:1px solid var(--line);border-radius:21px;background:#fff;box-shadow:var(--shadow-soft)}
+.plan.premium{border-color:color-mix(in srgb, var(--accent) 25%, var(--line));background:linear-gradient(160deg,#ffffff 0%, color-mix(in srgb, var(--accent) 8%, #ffffff) 100%);box-shadow:var(--shadow)}
+.plan-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.plan-top h3{margin:0;color:var(--ink);font-size:20px;font-weight:780;letter-spacing:-.02em}
+.plan-mark{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px}
+.plan-mark.free{background:var(--tint);color:var(--accent)}
+.plan-mark.premium{background:var(--accent);color:#fff}
+.plan p{margin:0;color:var(--body);font-size:14.5px;line-height:1.72}
+.plan-note{margin-top:15px;padding:14px 17px;border:1px solid color-mix(in srgb, var(--accent) 16%, var(--line));border-radius:13px;background:var(--tint);color:var(--body);font-size:13px;line-height:1.65}
+.privacy-panel{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:34px;align-items:center;padding:42px 44px;border:1px solid color-mix(in srgb, var(--accent) 16%, var(--line));border-radius:28px;background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, #ffffff) 0%, #ffffff 62%, color-mix(in srgb, var(--accent-2) 12%, #ffffff) 100%);box-shadow:var(--shadow)}
+.panel-icon{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;margin-bottom:15px;border-radius:14px;background:#fff;border:1px solid var(--line);color:var(--accent);box-shadow:var(--shadow-soft)}
+.privacy-panel h2{margin:0 0 10px;color:var(--ink);font-size:clamp(26px,3vw,35px);line-height:1.15;letter-spacing:-.025em;font-weight:800}
+.panel-lead{max-width:620px;margin:0 0 18px;color:var(--body);font-size:15px;line-height:1.7}
+.points{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.point{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.78);color:var(--ink);font-size:12.5px;font-weight:650}
+.point svg{color:var(--accent)}
+.text-link{display:inline-flex;align-items:center;gap:7px;color:var(--accent);font-size:13.5px;font-weight:750}
+.text-link:hover{text-decoration:none;gap:10px}
+.privacy-visual{position:relative;min-height:250px;display:grid;place-items:center}
+.ring{position:absolute;border-radius:50%;border:1px solid color-mix(in srgb, var(--accent) 20%, #ffffff)}
+.ring.one{width:190px;height:190px}
+.ring.two{width:260px;height:260px;opacity:.58}
+.ring.three{width:320px;height:320px;opacity:.32}
+.lock-badge{position:relative;display:grid;place-items:center;width:88px;height:88px;border-radius:26px;background:#fff;border:1px solid var(--line);color:var(--accent);box-shadow:var(--shadow)}
+.lock-badge svg{width:36px;height:36px}
+.support-card{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr);gap:34px;align-items:center;padding:40px 44px;border:1px solid var(--line);border-radius:28px;background:#fff;box-shadow:var(--shadow-soft)}
+.support-copy .kicker{margin-bottom:10px}
+.support-copy p{max-width:640px;margin:0 0 12px;color:var(--body);font-size:14.5px;line-height:1.75}
+.support-copy p:last-of-type{margin-bottom:16px}
+.disclaimer{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+.kofi{display:flex;flex-direction:column;align-items:center;gap:12px;padding:26px 22px;border:1px solid color-mix(in srgb, var(--accent) 16%, var(--line));border-radius:20px;background:linear-gradient(160deg, color-mix(in srgb, var(--accent) 7%, #ffffff) 0%, #ffffff 100%);text-align:center}
+.kofi-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#fff;border:1px solid var(--line);color:var(--accent);box-shadow:var(--shadow-soft)}
+.kofi p{margin:0;color:var(--body);font-size:13px;line-height:1.6}
+.kofi-btn{width:100%}
+.kofi-note{margin:0;color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+@media (max-width:1024px){
+  .hero-grid{grid-template-columns:1fr;gap:38px}
+  .app-card{max-width:460px;margin:0 auto;width:100%}
+  .feature-grid{grid-template-columns:1fr 1fr}
+  .privacy-panel,.support-card{grid-template-columns:1fr;gap:26px}
+  .privacy-visual{min-height:210px}
+}
+@media (max-width:760px){
+  .hero{padding:44px 0 30px}
+  .hero h1{font-size:clamp(33px,9vw,46px)}
+  .lead{font-size:16px}
+  .block{padding:42px 0}
+  .feature-grid{grid-template-columns:1fr}
+  .plans{grid-template-columns:1fr}
+  .more-list{grid-template-columns:1fr}
+  .privacy-panel,.support-card{padding:28px 22px;border-radius:22px}
+  .privacy-visual{display:none}
+  .cta-row .btn{flex:1 1 auto}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="index.html"><img src="icons/icon128.png" alt="" width="32" height="32"><span>ReadPos</span></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#features" id="i-nav-features">Features</a>
+      <a href="#plans" id="i-nav-plans">Free &amp; Pro</a>
+      <a href="#privacy" id="i-nav-privacy">Privacy</a>
+      <a href="#support" id="i-nav-support">Support</a>
+    </nav>
+    <div class="top-actions">
+      <select class="lang" id="i-lang" aria-label="Language"><option value="en">English</option><option value="zh">简体中文</option><option value="ja">日本語</option><option value="de">Deutsch</option><option value="es">Español</option><option value="fr">Français</option></select>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow" id="i-eyebrow">Chrome &amp; Edge extension</span>
+        <h1 id="i-h1">The page remembers where you stopped.</h1>
+        <div class="tagline" id="i-tagline"><span>Reading positions on every page</span><span>Page scenes with a licence</span></div>
+        <p class="lead" id="i-intro">ReadPos puts your reading position back on every long page. And when a page holds state that a scroll offset cannot describe — a dashboard, a half-filled form, a ticket you were writing — it saves the whole scene and puts every field back.</p>
+        <div class="badges" id="i-badges"><span class="badge"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12h8M12 8v8"/></svg>Runs locally</span><span class="badge"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 9 4.5 9 7a11.7 11.7 0 0 1-2.3 3.6"/><path d="M6.2 6.2C4.2 7.7 3 9.7 3 12c0 2.5 4 7 9 7a11 11 0 0 0 4.2-.8"/></svg>No tracking</span><span class="badge"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3Z"/></svg>Chrome &amp; Edge</span></div>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://annmax1983.com/extensions/readpos" target="_blank" rel="noopener"><span id="i-get-label">Get the extension</span><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn-secondary" href="privacy-policy.html"><span id="i-privacy-label">Privacy policy</span></a>
+        </div>
+        <p class="micro" id="i-micro">Free + Pro · Chrome &amp; Edge</p>
+      </div>
+      <aside class="app-card" aria-label="ReadPos">
+        <div class="app-card-glow" aria-hidden="true"></div>
+        <div class="app-icon"><img src="icons/icon128.png" alt="ReadPos icon" width="108" height="108"></div>
+        <div class="app-name" id="i-app-name">ReadPos</div>
+        <div class="app-sub" id="i-app-sub">Free + Pro</div>
+        <div class="app-points" id="i-app-points"><div><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Positions stored locally</span></div><div><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>No account</span></div><div><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Licence optional</span></div></div>
+        <div class="app-footer"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3Z"/></svg><span id="i-app-browsers">Chrome &amp; Edge</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="block" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">01</p>
+        <h2 id="i-feat-title">Everything it does</h2>
+        <p id="i-feat-lead">Reading memory is automatic. Scenes are on request.</p>
+      </div>
+      <div class="feature-grid" id="i-features"><article class="feature"><span class="num">01</span><p>The scroll offset is written about 600 ms after you stop, and again when the tab is hidden or closed. One record per page: no polling, no writes per pixel, no timer while you read.</p></article>
+<article class="feature"><span class="num">02</span><p>A pill in the bottom-right corner offers to take you back, with the percentage reached. It never scrolls on its own — you click it, or you ignore it.</p></article>
+<article class="feature"><span class="num">03</span><p>Positions below the trigger distance are not offered, so a page you barely scrolled stays quiet. The delay, the fade and that distance are adjustable with a licence.</p></article>
+<article class="feature"><span class="num">04</span><p>Single-page apps keep separate positions per route: /app/inbox and /app/settings are different pages. Tracking parameters such as utm_*, fbclid and gclid are dropped from the key.</p></article>
+<article class="feature"><span class="num">05</span><p>Lazy pages are handled. If the saved offset is beyond the current document height, the restore retries twice and then gives up quietly instead of fighting the layout.</p></article>
+<article class="feature"><span class="num">06</span><p>Pages that hold state take a scene: the scroll offset plus every text field, textarea, select, checkbox, radio and open panel, saved under a name you choose. (Pro)</p></article></div>
+      <div class="more-panel" id="i-more-panel">
+        <h3 id="i-more-title">Also included</h3>
+        <ul class="more-list" id="i-more"><li>Restoring a scene always shows what will be overwritten first. That confirmation is free and on by default — a safety step is not an upsell.</li>
+<li>Fields are found by structural path first, then id, then name, so a page that shifts slightly still restores. Values go back through the native setter with input and change events, so React and Vue notice.</li>
+<li>Passwords, one-time codes, card numbers, CVV, IBAN and SSN are excluded at capture time, not filtered at restore time. There is no setting that re-enables them.</li>
+<li>Twenty pages of history in the free version, 500 with a licence. The popup lists them with the percentage reached; click a row to reopen that page.</li>
+<li>JSON export and import, free. Import merges rather than replaces, and keeps the newer record when both sides have the same page.</li>
+<li>Six interface languages: English, 中文, 日本語, Deutsch, Español, Français.</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="plans">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">02</p>
+        <h2 id="i-plan-title">Free vs Pro</h2>
+        <p id="i-plan-lead">Positions are free forever. Pro adds the part that writes back into pages.</p>
+      </div>
+      <div class="plans" id="i-plans"><article class="plan"><div class="plan-top"><span class="plan-mark free"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><h3>Free</h3></div><p>Automatic reading positions on every page, the continue pill, per-site pause, clear this page, 20 pages of history, SPA route tracking, the restore confirmation, and JSON export and import of positions.</p></article><article class="plan premium"><div class="plan-top"><span class="plan-mark premium"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><h3>Pro</h3></div><p>Page scenes with save and restore, history up to 500 pages, adjustable pill delay, fade and trigger distance, regular expressions in the ignore list, several named scenes per page, read-only fields on request, and a keyboard shortcut.</p></article></div>
+      <div class="plan-note" id="i-plan-note">The licence is optional. ReadPos keeps working offline and asks the licence server for a check about every two hours when you open the popup; if the check fails, nothing is locked. One key activates two browsers.</div>
+    </div>
+  </section>
+
+  <section class="block" id="privacy">
+    <div class="wrap">
+      <div class="privacy-panel">
+        <div>
+          <span class="panel-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 15v2"/></svg></span>
+          <h2 id="i-priv-title">Private by design</h2>
+          <p class="panel-lead" id="i-priv-lead">Positions and scenes stay on your device. No account, no analytics, no tracking. Read exactly what is stored and when the extension uses the network.</p>
+          <div class="points" id="i-priv-points"><span class="point"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Positions stored locally</span><span class="point"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No account</span><span class="point"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Licence optional</span></div>
+          <a class="text-link" href="privacy-policy.html"><span id="i-priv-cta">Read the privacy policy</span><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="privacy-visual" aria-hidden="true">
+          <span class="ring one"></span><span class="ring two"></span><span class="ring three"></span>
+          <span class="lock-badge"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 15v2"/></svg></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="support">
+    <div class="wrap">
+      <div class="support-card">
+        <div class="support-copy">
+          <p class="kicker" id="i-support-eyebrow">Support the developer</p>
+          <h2 id="i-support-title">💌 A Note to You</h2>
+          <div id="i-support-copy"><p>Thank you for using ReadPos. I built it because I kept losing my place in long documents — and because the alternative, yet another reading-list app, only ever remembered the page and never the place.</p><p>If it gives you back a few seconds a day, that is already the best reward I could ask for.</p><p>Of course, if you'd like to <span class="heart">☕</span> buy me a coffee, it would truly make my day — and keep me motivated to make ReadPos better.</p></div>
+          <p class="disclaimer" id="i-support-disclaimer" hidden></p>
+        </div>
+        <div class="kofi">
+          <div class="kofi-icon"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z"/><path d="M16 10h2a3 3 0 0 1 0 6h-2"/><path d="M7 4v2M11 4v2"/></svg></div>
+          <p id="i-support-hint">Click the button below to visit the support page</p>
+          <a class="btn btn-primary kofi-btn" href="https://ko-fi.com/annmax?ref=readpos" target="_blank" rel="noopener"><span id="i-support-btn-label">Support My Work</span></a>
+          <p class="kofi-note">Ko-fi</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <img src="icons/icon128.png" alt="" width="30" height="30">
+      <div>ReadPos<span class="copy" id="i-footer-copy">© 2026 ReadPos</span></div>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="https://annmax1983.com/extensions" target="_blank" rel="noopener" id="i-footer-more">More extensions</a>
+      <a href="privacy-policy.html" id="i-footer-privacy">Privacy</a>
+      <a href="https://annmax1983.com/extensions/readpos" target="_blank" rel="noopener" id="i-footer-site">Website</a>
+      <a href="mailto:support@annmax1983.com">support@annmax1983.com</a>
+    </nav>
+  </div>
+</footer>
+<script>
+const MODEL = {"name":"ReadPos","icon":"icons/icon128.png","site":"https://annmax1983.com/extensions/readpos","support":"https://ko-fi.com/annmax?ref=readpos","slug":"readpos","langs":{"en":{"tagline":"The page remembers where you stopped. · Reading positions on every page · Page scenes with a licence","intro":"ReadPos puts your reading position back on every long page. And when a page holds state that a scroll offset cannot describe — a dashboard, a half-filled form, a ticket you were writing — it saves the whole scene and puts every field back.","why":["The scroll offset is written about 600 ms after you stop, and again when the tab is hidden or closed. One record per page: no polling, no writes per pixel, no timer while you read.","A pill in the bottom-right corner offers to take you back, with the percentage reached. It never scrolls on its own — you click it, or you ignore it.","Positions below the trigger distance are not offered, so a page you barely scrolled stays quiet. The delay, the fade and that distance are adjustable with a licence.","Single-page apps keep separate positions per route: /app/inbox and /app/settings are different pages. Tracking parameters such as utm_*, fbclid and gclid are dropped from the key.","Lazy pages are handled. If the saved offset is beyond the current document height, the restore retries twice and then gives up quietly instead of fighting the layout.","Pages that hold state take a scene: the scroll offset plus every text field, textarea, select, checkbox, radio and open panel, saved under a name you choose. (Pro)","Restoring a scene always shows what will be overwritten first. That confirmation is free and on by default — a safety step is not an upsell.","Fields are found by structural path first, then id, then name, so a page that shifts slightly still restores. Values go back through the native setter with input and change events, so React and Vue notice.","Passwords, one-time codes, card numbers, CVV, IBAN and SSN are excluded at capture time, not filtered at restore time. There is no setting that re-enables them.","Twenty pages of history in the free version, 500 with a licence. The popup lists them with the percentage reached; click a row to reopen that page.","JSON export and import, free. Import merges rather than replaces, and keeps the newer record when both sides have the same page.","Six interface languages: English, 中文, 日本語, Deutsch, Español, Français."],"plan":{"free":"Free, permanently: automatic reading positions on every page, the continue pill, per-site pause, clear this page, 20 pages of history, SPA route tracking, the restore confirmation, and JSON export and import of positions.","premium":"Pro (US$9.90 once): page scenes with save and restore, history up to 500 pages, adjustable pill delay, fade and trigger distance, regular expressions in the ignore list, several named scenes per page, read-only fields on request, and a keyboard shortcut.","note":"The licence is optional. ReadPos keeps working offline and asks the licence server for a check about every two hours when you open the popup; if the check fails, nothing is locked. One key activates two browsers."},"thankTitle":"💌 A Note to You","thank":["Thank you for using ReadPos. I built it because I kept losing my place in long documents — and because the alternative, yet another reading-list app, only ever remembered the page and never the place.","If it gives you back a few seconds a day, that is already the best reward I could ask for.","Of course, if you'd like to <span class=\"heart\">☕</span> buy me a coffee, it would truly make my day — and keep me motivated to make ReadPos better."],"disclaimer":"","ctaHint":"Click the button below to visit the support page","btnText":"Support My Work","ui":{"navFeatures":"Features","navPlans":"Free & Pro","navPrivacy":"Privacy","navSupport":"Support","eyebrow":"Chrome & Edge extension","badgeFree":"Free + Pro","badgeLocal":"Runs locally","badgeNoTrack":"No tracking","badgeBrowsers":"Chrome & Edge","ctaGet":"Get the extension","ctaPrivacy":"Privacy policy","featuresTitle":"Everything it does","featuresLead":"Reading memory is automatic. Scenes are on request.","moreTitle":"Also included","freeLabel":"Free","premiumLabel":"Pro","planTitle":"Free vs Pro","planLead":"Positions are free forever. Pro adds the part that writes back into pages.","privacyTitle":"Private by design","privacyLead":"Positions and scenes stay on your device. No account, no analytics, no tracking. Read exactly what is stored and when the extension uses the network.","privacyPoints":["Positions stored locally","No account","Licence optional"],"privacyCta":"Read the privacy policy","supportEyebrow":"Support the developer","footerMore":"More extensions","footerPrivacy":"Privacy","footerSite":"Website"}},"zh":{"tagline":"页面记得你停在哪。 · 每页都有阅读位置 · 授权后可存页面现场","intro":"读位把阅读位置放回每一篇长页面。当页面持有的状态无法用一个滚动位置描述时——一个仪表盘、填了一半的表单、写到一半的工单——它把整个现场存下来，再把每个字段放回去。","why":["停手约 600 毫秒后写入滚动位置，标签页隐藏或关闭时再写一次。每页一条记录：不轮询、不逐像素写，阅读过程中没有定时器。","右下角出现一个小胶囊，带进度百分比，问你要不要回去。它绝不自己滚动——你点它，或者不理它。","低于触发距离的位置不提示，几乎没滚过的页面保持安静。延迟、淡出与这个距离在有授权后可调。","单页应用按路由分别记录：/app/inbox 与 /app/settings 是两个页面。utm_*、fbclid、gclid 这类跟踪参数不计入页面身份。","延迟加载的页面也照顾到：保存位置超过当前文档高度时，最多重试两次，然后安静放弃，不去和版面较劲。","持有状态的页面可以存现场：滚动位置，加上文本框、多行文本、下拉、勾选、单选与展开的面板，存成你起的名字。（Pro）","还原现场之前，一定先告诉你哪些内容会被覆盖。这一步免费且默认开启——安全步骤不该拿来收费。","字段先按结构路径找，再退到 id，再退到 name，所以页面小幅重排也能还原。值通过原生 setter 写回并补发 input 与 change，React 与 Vue 认得出。","密码、一次性验证码、卡号、CVV、IBAN、SSN 在采集阶段就排除，不是还原时再过滤。没有任何设置能重新打开它们。","免费版 20 条历史，有授权 500 条。弹窗按进度百分比列出，点一行就能回到那页。","JSON 导出与导入，免费。导入是合并而不是覆盖，同一页面两边都有时保留较新的记录。","六种界面语言：English、中文、日本語、Deutsch、Español、Français。"],"plan":{"free":"永久免费：全站自动记录阅读位置、继续胶囊、按站点暂停、清空当前页、20 条历史、SPA 路由区分、还原前确认，以及位置的 JSON 导出与导入。","premium":"Pro（9.90 美元一次性）：页面现场的保存与还原、历史最多 500 条、胶囊延迟/淡出/触发距离可调、忽略列表支持正则、每页多个命名现场、可选包含只读字段，以及保存快捷键。","note":"授权完全可选。读位离线照常工作，打开弹窗时大约每两小时向授权服务器核对一次；核对失败也不会锁住任何功能。一个授权码可在两个浏览器激活。"},"thankTitle":"💌 想对你说","thank":["感谢你使用读位。做它是因为我自己总在长文档里丢位置——也因为那些稍后读工具只记得页面，从来不记得你在哪儿。","如果它每天能帮你省回几秒钟，那对我来说就是最好的回报。","当然，如果你愿意请我喝一杯咖啡 <span class=\"heart\">☕</span>，我会非常开心——这会让我更有动力把它打磨得更好。"],"disclaimer":"","ctaHint":"点击下方按钮，跳转到支持页面","btnText":"支持我的工作","ui":{"navFeatures":"功能","navPlans":"免费与 Pro","navPrivacy":"隐私","navSupport":"支持","eyebrow":"Chrome 与 Edge 扩展","badgeFree":"免费 + Pro","badgeLocal":"本地运行","badgeNoTrack":"无追踪","badgeBrowsers":"Chrome 与 Edge","ctaGet":"获取扩展","ctaPrivacy":"隐私政策","featuresTitle":"全部功能","featuresLead":"阅读位置是自动的，现场是你按下保存才有的。","moreTitle":"还包括","freeLabel":"免费版","premiumLabel":"Pro 版","planTitle":"免费版与 Pro","planLead":"位置永久免费。Pro 补上会写回页面的那一半。","privacyTitle":"隐私优先","privacyLead":"位置与现场都留在你的设备上。无需账号，没有统计，没有追踪。了解具体存了什么，以及扩展何时联网。","privacyPoints":["位置存在本地","无需账号","授权可选"],"privacyCta":"阅读隐私政策","supportEyebrow":"支持开发者","footerMore":"更多扩展","footerPrivacy":"隐私","footerSite":"官网"}},"ja":{"tagline":"ページは、止めた場所を覚えています。 · すべてのページに閲覧位置 · ライセンスでページ場面","intro":"ReadPos は長いページで閲覧位置を元に戻します。スクロール位置では表せない状態を持つページ — ダッシュボード、書きかけのフォーム、途中のチケット — では、場面ごと保存してすべてのフィールドを戻します。","why":["スクロールを止めて約 600 ミリ秒後に位置を書き込み、タブが隠れたときや閉じたときにもう一度書きます。1 ページ 1 件。ポーリングもピクセル単位の書き込みもなく、読んでいる間にタイマーは動きません。","右下に小さなピルが出て、到達率とともに戻るかどうかを尋ねます。勝手にスクロールはしません。押すか、無視するかです。","しきい値未満の位置は提示しないので、ほとんど読んでいないページは静かなままです。遅延・フェード・しきい値はライセンスで調整できます。","シングルページアプリはルートごとに別々に記録します。/app/inbox と /app/settings は別ページで、utm_*、fbclid、gclid などの追跡パラメータはキーに含めません。","遅延読み込みにも対応します。保存位置が現在の文書高を超えている場合、二度まで再試行し、その後はレイアウトと争わず静かに諦めます。","状態を持つページは場面として保存できます。スクロール位置に加えて、テキスト欄、テキストエリア、セレクト、チェックボックス、ラジオ、開いたパネルを、付けた名前で。（Pro）","復元前には必ず上書きされる内容を表示します。この確認は無料で既定オン——安全確認を売り物にはしません。","フィールドはまず構造パス、次に id、次に name で探すので、多少レイアウトが動いても復元できます。値はネイティブ setter で書き戻し input と change を発火するため、React や Vue にも届きます。","パスワード、ワンタイムコード、カード番号、CVV、IBAN、SSN は取得時点で除外します。復元時にふるい落とすのではなく、再有効化する設定もありません。","無料版は履歴 20 件、ライセンスありで 500 件。ポップアップに到達率つきで並び、行をクリックすればそのページに戻れます。","JSON の書き出しと読み込みは無料。読み込みは置き換えではなく統合で、同じページに両方あるときは新しい方を残します。","6 言語の UI：English、中文、日本語、Deutsch、Español、Français。"],"plan":{"free":"永久無料：全ページの自動位置記憶、続きからピル、サイト単位の一時停止、このページの消去、履歴 20 件、SPA ルートの区別、復元前の確認、位置の JSON 書き出し・読み込み。","premium":"Pro（9.90 ドルの買い切り）：ページ場面の保存と復元、履歴 500 件まで、ピルの遅延・フェード・しきい値の調整、除外リストの正規表現、ページごとの複数場面、読み取り専用フィールドの任意取り込み、保存ショートカット。","note":"ライセンスは任意です。ReadPos はオフラインでも動作し、ポップアップを開いたとき約 2 時間ごとにライセンスサーバーへ確認します。確認に失敗しても機能はロックされません。キー 1 本で 2 ブラウザ。"},"thankTitle":"💌 ご利用ありがとうございます","thank":["ReadPos をご利用いただきありがとうございます。長い文書で場所を失い続けたこと、そして「あとで読む」系のアプリがページしか覚えていなかったことが、これを作った理由です。","1 日に数秒でも取り戻せているなら、それが何よりの報酬です。","もしよろしければ、コーヒーを <span class=\"heart\">☕</span> 一杯おごっていただけると嬉しいです。もっと良くする励みになります。"],"disclaimer":"","ctaHint":"下のボタンをクリックするとサポートページに移動します","btnText":"開発を支援する","ui":{"navFeatures":"機能","navPlans":"無料とPro","navPrivacy":"プライバシー","navSupport":"サポート","eyebrow":"Chrome & Edge 拡張機能","badgeFree":"無料 + Pro","badgeLocal":"端末上で動作","badgeNoTrack":"トラッキングなし","badgeBrowsers":"Chrome & Edge","ctaGet":"拡張機能を入手","ctaPrivacy":"プライバシーポリシー","featuresTitle":"すべての機能","featuresLead":"閲覧位置は自動。場面は指示したときだけ。","moreTitle":"その他の機能","freeLabel":"無料版","premiumLabel":"Pro","planTitle":"無料版とPro","planLead":"位置は永久無料。Pro はページに書き戻す側を追加します。","privacyTitle":"プライバシー優先","privacyLead":"位置も場面も端末上に残ります。アカウント、分析、トラッキングはありません。何が保存され、いつ通信するかを確認できます。","privacyPoints":["位置は端末内","アカウント不要","ライセンスは任意"],"privacyCta":"プライバシーポリシーを読む","supportEyebrow":"開発者を支援","footerMore":"他の拡張機能","footerPrivacy":"プライバシー","footerSite":"公式サイト"}},"de":{"tagline":"Die Seite merkt sich, wo Sie aufgehört haben. · Leseposition auf jeder Seite · Seiten-Szenen mit Lizenz","intro":"ReadPos stellt Ihre Leseposition auf jeder langen Seite wieder her. Und wenn eine Seite einen Zustand trägt, den ein Scroll-Offset nicht beschreibt — ein Dashboard, ein halb ausgefülltes Formular, ein angefangenes Ticket — speichert sie die ganze Szene und legt jedes Feld zurück.","why":["Der Scroll-Offset wird etwa 600 ms nach dem Anhalten geschrieben, und erneut, wenn der Tab verborgen oder geschlossen wird. Ein Datensatz pro Seite: kein Polling, keine Schreibvorgänge pro Pixel, kein Timer während des Lesens.","Unten rechts erscheint eine Pille mit dem erreichten Prozentwert und fragt, ob Sie zurück möchten. Von selbst scrollt sie nie — Sie klicken oder ignorieren.","Positionen unter der Auslöseschwelle werden nicht angeboten, eine kaum gescrollte Seite bleibt still. Verzögerung, Ausblenden und diese Schwelle sind mit Lizenz einstellbar.","Single-Page-Apps behalten Positionen pro Route: /app/inbox und /app/settings sind verschiedene Seiten. Tracking-Parameter wie utm_*, fbclid und gclid fließen nicht in den Schlüssel ein.","Nachladende Seiten sind berücksichtigt: Liegt der gespeicherte Offset jenseits der aktuellen Dokumenthöhe, wird zweimal erneut versucht und dann still aufgegeben, statt gegen das Layout zu kämpfen.","Seiten mit Zustand nehmen eine Szene auf: Scroll-Offset plus jedes Textfeld, Textarea, Auswahlfeld, Kontrollkästchen, Radio und offene Panel — unter einem Namen Ihrer Wahl. (Pro)","Vor dem Wiederherstellen wird immer angezeigt, was überschrieben wird. Diese Bestätigung ist kostenlos und standardmäßig an — ein Sicherheitsschritt ist kein Verkaufsargument.","Felder werden zuerst über den strukturellen Pfad gefunden, dann über die id, dann über den name; eine Seite, die sich leicht verschiebt, wird trotzdem wiederhergestellt. Werte gehen über den nativen Setter mit input und change zurück, damit React und Vue es merken.","Passwörter, Einmalcodes, Kartennummern, CVV, IBAN und SSN werden beim Erfassen ausgeschlossen, nicht beim Wiederherstellen gefiltert. Es gibt keine Einstellung, die sie wieder aktiviert.","Zwanzig Einträge Verlauf in der kostenlosen Version, 500 mit Lizenz. Das Popup listet sie mit Prozentwert; ein Klick auf eine Zeile öffnet die Seite.","JSON-Export und -Import, kostenlos. Der Import führt zusammen statt zu ersetzen und behält den neueren Datensatz, wenn beide Seiten dieselbe Seite kennen.","Sechs Oberflächensprachen: English, 中文, 日本語, Deutsch, Español, Français."],"plan":{"free":"Dauerhaft kostenlos: automatische Lesepositionen auf jeder Seite, die Weiterlesen-Pille, Pausieren pro Website, diese Seite löschen, 20 Einträge Verlauf, SPA-Routen, die Bestätigung vor dem Wiederherstellen sowie JSON-Export und -Import der Positionen.","premium":"Pro (9,90 USD einmalig): Seiten-Szenen mit Speichern und Wiederherstellen, Verlauf bis 500 Seiten, einstellbare Verzögerung, Ausblendzeit und Auslöseschwelle, reguläre Ausdrücke in der Ausschlussliste, mehrere benannte Szenen pro Seite, schreibgeschützte Felder auf Wunsch und ein Tastaturkurzbefehl.","note":"Die Lizenz ist optional. ReadPos funktioniert auch offline und fragt den Lizenzserver etwa alle zwei Stunden beim Öffnen des Popups; schlägt die Prüfung fehl, wird nichts gesperrt. Ein Schlüssel gilt für zwei Browser."},"thankTitle":"💌 Ein paar Worte an Sie","thank":["Danke, dass Sie ReadPos nutzen. Ich habe es gebaut, weil ich in langen Dokumenten ständig meine Stelle verlor — und weil die Alternative, noch eine Leselisten-App, immer nur die Seite behielt und nie die Stelle.","Wenn es Ihnen ein paar Sekunden am Tag zurückgibt, ist das die beste Belohnung, die ich mir wünschen kann.","Wenn Sie mir gerne einen <span class=\"heart\">☕</span> Kaffee ausgeben möchten, würde mich das sehr freuen — und mich motivieren, ReadPos noch besser zu machen."],"disclaimer":"","ctaHint":"Klicken Sie auf die Schaltfläche unten, um zur Support-Seite zu gelangen","btnText":"Meine Arbeit unterstützen","ui":{"navFeatures":"Funktionen","navPlans":"Free & Pro","navPrivacy":"Datenschutz","navSupport":"Support","eyebrow":"Chrome- und Edge-Erweiterung","badgeFree":"Free + Pro","badgeLocal":"Läuft lokal","badgeNoTrack":"Kein Tracking","badgeBrowsers":"Chrome & Edge","ctaGet":"Erweiterung holen","ctaPrivacy":"Datenschutzerklärung","featuresTitle":"Alle Funktionen","featuresLead":"Lesegedächtnis ist automatisch. Szenen entstehen auf Ihr Geheiß.","moreTitle":"Außerdem","freeLabel":"Free","premiumLabel":"Pro","planTitle":"Free vs. Pro","planLead":"Positionen bleiben immer kostenlos. Pro ergänzt den Teil, der in Seiten zurückschreibt.","privacyTitle":"Privat by Design","privacyLead":"Positionen und Szenen bleiben auf Ihrem Gerät. Kein Konto, keine Analyse, kein Tracking. Lesen Sie genau, was gespeichert wird und wann die Erweiterung das Netz nutzt.","privacyPoints":["Positionen lokal","Kein Konto","Lizenz optional"],"privacyCta":"Datenschutzerklärung lesen","supportEyebrow":"Unterstütze die Entwicklung","footerMore":"Weitere Erweiterungen","footerPrivacy":"Datenschutz","footerSite":"Website"}},"es":{"tagline":"La página recuerda dónde lo dejaste. · Posición de lectura en cada página · Escenas con licencia","intro":"ReadPos devuelve tu posición de lectura en cada página larga. Y cuando una página guarda un estado que un desplazamiento no describe — un panel, un formulario a medias, un ticket empezado — guarda la escena completa y devuelve cada campo.","why":["La posición se guarda unos 600 ms después de que pares, y otra vez cuando la pestaña se oculta o se cierra. Un registro por página: sin sondeos, sin escrituras por píxel, sin temporizadores mientras lees.","Abajo a la derecha aparece una píldora con el porcentaje alcanzado que te ofrece volver. Nunca se desplaza sola: la pulsas o la ignoras.","Las posiciones por debajo del umbral no se ofrecen, así que una página apenas desplazada sigue callada. El retardo, el desvanecido y ese umbral se ajustan con licencia.","Las aplicaciones de una sola página guardan posiciones por ruta: /app/inbox y /app/settings son páginas distintas. Parámetros como utm_*, fbclid y gclid no entran en la clave.","Las páginas con carga diferida están contempladas: si la posición guardada supera la altura del documento, se reintenta dos veces y luego se abandona en silencio en lugar de pelearse con el diseño.","Las páginas con estado admiten una escena: el desplazamiento más cada campo de texto, área de texto, select, casilla, radio y panel abierto, guardado con el nombre que elijas. (Pro)","Antes de restaurar siempre se muestra qué se va a sobrescribir. Esa confirmación es gratis y está activa por defecto: un paso de seguridad no es un extra de pago.","Los campos se localizan por ruta estructural, luego por id y luego por name, así que una página que se mueve un poco se restaura igual. Los valores vuelven por el setter nativo con eventos input y change, para que React y Vue lo noten.","Contraseñas, códigos de un solo uso, números de tarjeta, CVV, IBAN y SSN se excluyen al capturar, no se filtran al restaurar. Ningún ajuste los reactiva.","Veinte entradas de historial en la versión gratuita, 500 con licencia. El popup las lista con el porcentaje; un clic en una fila reabre la página.","Exportación e importación JSON, gratis. Al importar se combina en lugar de reemplazar y se conserva el registro más reciente cuando ambos lados conocen la misma página.","Seis idiomas de interfaz: English, 中文, 日本語, Deutsch, Español, Français."],"plan":{"free":"Gratis para siempre: posiciones automáticas en todas las páginas, la píldora de continuación, pausa por sitio, borrar esta página, 20 entradas de historial, rutas SPA, la confirmación antes de restaurar y exportación e importación JSON de posiciones.","premium":"Pro (9,90 USD una vez): escenas con guardar y restaurar, historial de hasta 500 páginas, retardo, desvanecido y umbral ajustables, expresiones regulares en la lista de exclusión, varias escenas con nombre por página, campos de solo lectura si los quieres y un atajo de teclado.","note":"La licencia es opcional. ReadPos sigue funcionando sin conexión y consulta al servidor de licencias cada dos horas aproximadamente al abrir el panel; si la comprobación falla, no se bloquea nada. Una clave se activa en dos navegadores."},"thankTitle":"💌 Unas palabras para ti","thank":["Gracias por usar ReadPos. Lo construí porque perdía mi sitio en documentos largos una y otra vez, y porque la alternativa —otra app de listas de lectura— solo recordaba la página, nunca el lugar.","Si te devuelve unos segundos al día, esa ya es la mejor recompensa que puedo pedir.","Por supuesto, si quieres invitarme a un <span class=\"heart\">☕</span> café, me haría mucha ilusión y me animaría a mejorarlo."],"disclaimer":"","ctaHint":"Haz clic en el botón de abajo para visitar la página de soporte","btnText":"Apoya mi trabajo","ui":{"navFeatures":"Funciones","navPlans":"Gratis y Pro","navPrivacy":"Privacidad","navSupport":"Apoyo","eyebrow":"Extensión para Chrome y Edge","badgeFree":"Gratis + Pro","badgeLocal":"Se ejecuta en local","badgeNoTrack":"Sin rastreo","badgeBrowsers":"Chrome y Edge","ctaGet":"Obtener la extensión","ctaPrivacy":"Política de privacidad","featuresTitle":"Todo lo que hace","featuresLead":"La memoria de lectura es automática. Las escenas, a petición.","moreTitle":"También incluye","freeLabel":"Gratis","premiumLabel":"Pro","planTitle":"Gratis vs Pro","planLead":"Las posiciones son gratis para siempre. Pro añade la parte que escribe en las páginas.","privacyTitle":"Privacidad por diseño","privacyLead":"Posiciones y escenas se quedan en tu dispositivo. Sin cuenta, sin analíticas y sin rastreo. Consulta qué se guarda y cuándo usa la red la extensión.","privacyPoints":["Posiciones en local","Sin cuenta","Licencia opcional"],"privacyCta":"Leer la política de privacidad","supportEyebrow":"Apoya al desarrollador","footerMore":"Más extensiones","footerPrivacy":"Privacidad","footerSite":"Sitio web"}},"fr":{"tagline":"La page se souvient où vous vous êtes arrêté. · Position de lecture sur chaque page · Scènes avec licence","intro":"ReadPos remet votre position de lecture sur chaque page longue. Et quand une page porte un état qu'un défilement ne décrit pas — un tableau de bord, un formulaire à moitié rempli, un ticket commencé — il enregistre la scène entière et remet chaque champ en place.","why":["Le décalage est écrit environ 600 ms après l'arrêt, puis de nouveau quand l'onglet est masqué ou fermé. Un enregistrement par page : aucune interrogation périodique, aucune écriture au pixel, aucune minuterie pendant la lecture.","Une pilule en bas à droite annonce le pourcentage atteint et propose d'y retourner. Elle ne défile jamais seule : vous cliquez, ou vous ignorez.","Les positions sous le seuil ne sont pas proposées, donc une page à peine parcourue reste muette. Le délai, l'effacement et ce seuil se règlent avec une licence.","Les applications monopage conservent une position par route : /app/inbox et /app/settings sont deux pages. Les paramètres comme utm_*, fbclid et gclid n'entrent pas dans la clé.","Les pages à chargement différé sont gérées : si la position dépasse la hauteur du document, deux tentatives puis on renonce en silence plutôt que de lutter contre la mise en page.","Les pages qui portent un état acceptent une scène : le décalage plus chaque champ texte, zone de texte, liste, case à cocher, bouton radio et panneau ouvert, enregistré sous un nom que vous choisissez. (Pro)","Avant toute restauration, ce qui sera écrasé est affiché. Cette confirmation est gratuite et active par défaut : une étape de sécurité n'est pas un argument de vente.","Les champs sont localisés par chemin structurel, puis par id, puis par name ; une page qui bouge légèrement se restaure quand même. Les valeurs repassent par le setter natif avec les événements input et change, donc React et Vue le voient.","Mots de passe, codes à usage unique, numéros de carte, CVV, IBAN et SSN sont exclus à la capture, pas filtrés à la restauration. Aucun réglage ne les réactive.","Vingt entrées d'historique en version gratuite, 500 avec licence. Le popup les liste avec le pourcentage ; un clic sur une ligne rouvre la page.","Export et import JSON, gratuits. L'import fusionne au lieu de remplacer et conserve l'enregistrement le plus récent quand les deux côtés connaissent la même page.","Six langues d'interface : English, 中文, 日本語, Deutsch, Español, Français."],"plan":{"free":"Gratuit pour toujours : positions automatiques sur toutes les pages, la pilule de reprise, la pause par site, l'effacement de la page courante, 20 entrées d'historique, les routes SPA, la confirmation avant restauration, et l'export/import JSON des positions.","premium":"Pro (9,90 USD une fois) : scènes avec enregistrement et restauration, historique jusqu'à 500 pages, délai, effacement et seuil réglables, expressions régulières dans la liste d'exclusion, plusieurs scènes nommées par page, champs en lecture seule sur demande et un raccourci clavier.","note":"La licence est facultative. ReadPos fonctionne hors ligne et interroge le serveur de licences environ toutes les deux heures à l'ouverture du panneau ; en cas d'échec, rien n'est verrouillé. Une clé s'active sur deux navigateurs."},"thankTitle":"💌 Un petit mot pour vous","thank":["Merci d'utiliser ReadPos. Je l'ai construit parce que je perdais sans cesse ma place dans les longs documents — et parce que l'alternative, une application de lecture de plus, ne retenait que la page, jamais l'endroit.","S'il vous rend quelques secondes par jour, c'est déjà la plus belle récompense.","Bien sûr, si vous souhaitez m'offrir un <span class=\"heart\">☕</span> café, cela me ferait très plaisir — et me motiverait à l'améliorer encore."],"disclaimer":"","ctaHint":"Cliquez sur le bouton ci-dessous pour accéder à la page de soutien","btnText":"Soutenir mon travail","ui":{"navFeatures":"Fonctionnalités","navPlans":"Gratuit et Pro","navPrivacy":"Confidentialité","navSupport":"Soutien","eyebrow":"Extension Chrome et Edge","badgeFree":"Gratuit + Pro","badgeLocal":"Fonctionne en local","badgeNoTrack":"Aucun suivi","badgeBrowsers":"Chrome et Edge","ctaGet":"Obtenir l'extension","ctaPrivacy":"Politique de confidentialité","featuresTitle":"Toutes les fonctionnalités","featuresLead":"La mémoire de lecture est automatique. Les scènes se déclenchent sur demande.","moreTitle":"Également inclus","freeLabel":"Gratuit","premiumLabel":"Pro","planTitle":"Gratuit vs Pro","planLead":"Les positions restent gratuites. Pro ajoute la partie qui réécrit dans les pages.","privacyTitle":"Confidentiel par conception","privacyLead":"Positions et scènes restent sur votre appareil. Sans compte, sans analyse, sans suivi. Découvrez ce qui est stocké et quand l'extension utilise le réseau.","privacyPoints":["Positions en local","Sans compte","Licence facultative"],"privacyCta":"Lire la politique de confidentialité","supportEyebrow":"Soutenir le développeur","footerMore":"Plus d'extensions","footerPrivacy":"Confidentialité","footerSite":"Site web"}}}};
+const LANG_KEY = "vkt-readpos-lang";
+(function () {
+  "use strict";
+
+  var select = document.getElementById("i-lang");
+
+  function esc(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function setText(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value == null ? "" : value;
+  }
+
+  function detect() {
+    var codes = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
+    for (var i = 0; i < codes.length; i++) {
+      var code = String(codes[i] || "").toLowerCase();
+      if (code.indexOf("zh") === 0) return "zh";
+      if (code.indexOf("ja") === 0) return "ja";
+      if (code.indexOf("de") === 0) return "de";
+      if (code.indexOf("es") === 0) return "es";
+      if (code.indexOf("fr") === 0) return "fr";
+      if (code.indexOf("en") === 0) return "en";
+    }
+    return "en";
+  }
+
+  function stripLead(value) {
+    var text = String(value == null ? "" : value);
+    var match = text.match(/^([^:：]{1,70})[:：]\s*/);
+    if (match && /(free|gratis|kostenlos|gratuit|無料|免费|免費|premium|pro\b|payant|kostenpflichtig|プレミアム|有料|高级|高級|付费|付費|licen|lizenz|licencia|licence|授权|授權|ライセンス)/i.test(match[1])) {
+      return text.slice(match[0].length);
+    }
+    return text;
+  }
+
+  function sentence(value) {
+    var text = String(value == null ? "" : value);
+    return /^[a-z]/.test(text) ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+  }
+
+  function cleanNote(value) {
+    var text = String(value == null ? "" : value).trim();
+    if (/^(HOW IT WORKS|SO FUNKTIONIERT ES|CÓMO FUNCIONA|COMMENT ÇA MARCHE|使用方法|使い方)$/i.test(text)) return "";
+    return text;
+  }
+
+  var iconCheck = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  var iconLocal = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12h8M12 8v8"/></svg>';
+  var iconEye = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 9 4.5 9 7a11.7 11.7 0 0 1-2.3 3.6"/><path d="M6.2 6.2C4.2 7.7 3 9.7 3 12c0 2.5 4 7 9 7a11 11 0 0 0 4.2-.8"/></svg>';
+  var iconGlobe = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3Z"/></svg>';
+  var iconCoffee = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z"/><path d="M16 10h2a3 3 0 0 1 0 6h-2"/><path d="M7 4v2M11 4v2"/></svg>';
+
+  function render(lang) {
+    var data = MODEL.langs[lang];
+    if (!data) return;
+    var u = data.ui;
+
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
+
+    var parts = String(data.tagline || "").split("·").map(function (part) { return part.trim(); }).filter(Boolean);
+    var headline = parts.length ? parts.shift() : MODEL.name;
+
+    document.title = MODEL.name + " — " + headline;
+    var meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute("content", data.intro.slice(0, 158));
+
+    setText("i-nav-features", u.navFeatures);
+    setText("i-nav-plans", u.navPlans);
+    setText("i-nav-privacy", u.navPrivacy);
+    setText("i-nav-support", u.navSupport);
+    setText("i-eyebrow", u.eyebrow);
+    setText("i-h1", headline);
+    setText("i-intro", data.intro);
+    setText("i-get-label", u.ctaGet);
+    setText("i-privacy-label", u.ctaPrivacy);
+    setText("i-micro", u.badgeFree + " · " + u.badgeBrowsers);
+
+    var tagline = document.getElementById("i-tagline");
+    if (tagline) {
+      tagline.innerHTML = parts.map(function (part) { return "<span>" + esc(part) + "</span>"; }).join("");
+    }
+
+    var badges = document.getElementById("i-badges");
+    if (badges) {
+      badges.innerHTML = [
+        [iconLocal, u.badgeLocal],
+        [iconEye, u.badgeNoTrack],
+        [iconGlobe, u.badgeBrowsers]
+      ].map(function (item) {
+        return '<span class="badge">' + item[0] + esc(item[1]) + "</span>";
+      }).join("");
+    }
+
+    setText("i-app-name", MODEL.name);
+    setText("i-app-sub", u.badgeFree);
+    setText("i-app-browsers", u.badgeBrowsers);
+    var appPoints = document.getElementById("i-app-points");
+    if (appPoints) {
+      appPoints.innerHTML = u.privacyPoints.map(function (point) {
+        return "<div>" + iconCheck + "<span>" + esc(point) + "</span></div>";
+      }).join("");
+    }
+
+    setText("i-feat-title", u.featuresTitle);
+    setText("i-feat-lead", u.featuresLead);
+    setText("i-more-title", u.moreTitle);
+
+    var primary = data.why.slice(0, 6);
+    var extra = data.why.slice(6);
+    var featureGrid = document.getElementById("i-features");
+    if (featureGrid) {
+      featureGrid.innerHTML = primary.map(function (text, index) {
+        return '<article class="feature"><span class="num">' + String(index + 1).padStart(2, "0") + "</span><p>" + esc(text) + "</p></article>";
+      }).join("");
+    }
+
+    var morePanel = document.getElementById("i-more-panel");
+    var moreList = document.getElementById("i-more");
+    if (morePanel && moreList) {
+      if (extra.length) {
+        morePanel.hidden = false;
+        moreList.innerHTML = extra.map(function (text) { return "<li>" + esc(text) + "</li>"; }).join("");
+      } else {
+        morePanel.hidden = true;
+      }
+    }
+
+    setText("i-plan-title", u.planTitle);
+    setText("i-plan-lead", u.planLead);
+    var plans = document.getElementById("i-plans");
+    if (plans) {
+      plans.innerHTML =
+        '<article class="plan"><div class="plan-top"><span class="plan-mark free">' + iconCheck + "</span><h3>" + esc(u.freeLabel) + "</h3></div><p>" + esc(sentence(stripLead(data.plan.free))) + "</p></article>" +
+        '<article class="plan premium"><div class="plan-top"><span class="plan-mark premium">' + iconCheck + "</span><h3>" + esc(u.premiumLabel) + "</h3></div><p>" + esc(sentence(stripLead(data.plan.premium))) + "</p></article>";
+    }
+
+    var note = cleanNote(data.plan.note);
+    var planNote = document.getElementById("i-plan-note");
+    if (planNote) {
+      planNote.hidden = !note;
+      planNote.textContent = note;
+    }
+
+    setText("i-priv-title", u.privacyTitle);
+    setText("i-priv-lead", u.privacyLead);
+    setText("i-priv-cta", u.privacyCta);
+    var points = document.getElementById("i-priv-points");
+    if (points) {
+      points.innerHTML = u.privacyPoints.map(function (point) {
+        return '<span class="point">' + iconCheck + esc(point) + "</span>";
+      }).join("");
+    }
+
+    setText("i-support-eyebrow", u.supportEyebrow);
+    setText("i-support-title", data.thankTitle);
+    var copy = document.getElementById("i-support-copy");
+    if (copy) {
+      copy.innerHTML = data.thank.map(function (paragraph) { return "<p>" + paragraph + "</p>"; }).join("");
+    }
+    var hint = document.getElementById("i-support-hint");
+    if (hint) {
+      hint.hidden = !data.ctaHint;
+      hint.textContent = data.ctaHint || "";
+    }
+    setText("i-support-btn-label", data.btnText || "Buy Me a Coffee");
+    var disclaimer = document.getElementById("i-support-disclaimer");
+    if (disclaimer) {
+      disclaimer.hidden = !data.disclaimer;
+      disclaimer.textContent = data.disclaimer || "";
+    }
+
+    setText("i-footer-more", u.footerMore);
+    setText("i-footer-privacy", u.footerPrivacy);
+    setText("i-footer-site", u.footerSite);
+    setText("i-footer-copy", "© 2026 " + MODEL.name);
+  }
+
+  function storedLang() {
+    try { return localStorage.getItem(LANG_KEY); } catch (error) { return null; }
+  }
+
+  function remember(lang) {
+    try { localStorage.setItem(LANG_KEY, lang); } catch (error) { /* storage can be blocked */ }
+  }
+
+  if (select) {
+    var saved = storedLang();
+    var initial = saved && MODEL.langs[saved] ? saved : detect();
+    if (!MODEL.langs[initial]) initial = "en";
+    select.value = initial;
+    if (initial !== "en") render(initial);
+    select.addEventListener("change", function () {
+      remember(select.value);
+      render(select.value);
+    });
+  }
+})();
+</script>
+</body>
+</html>
