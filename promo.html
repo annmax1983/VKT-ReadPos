@@ -2,82 +2,56 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>VKT ReadPos — promo</title>
+<meta name="viewport" content="width=1400">
+<title>VKT ReadPos — store promotional tile</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    width: 1400px; height: 560px; overflow: hidden;
-    background:
-      radial-gradient(900px 420px at 88% 8%, rgba(47, 191, 174, .30), rgba(47, 191, 174, 0) 70%),
-      radial-gradient(700px 420px at 6% 100%, rgba(10, 107, 98, .45), rgba(10, 107, 98, 0) 72%),
-      #0c1519;
-    color: #eaf3f2;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    padding: 62px 72px;
-    position: relative;
-  }
-  .row { display: flex; align-items: center; gap: 22px; }
-  .icon {
-    width: 84px; height: 84px; border-radius: 20px;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
-  }
-  h1 { font-size: 46px; letter-spacing: -1px; font-weight: 700; }
-  .sub { font-size: 17px; color: rgba(234, 243, 242, .66); margin-top: 6px; letter-spacing: .2px; }
-  .tag {
-    margin-top: 34px; font-size: 27px; line-height: 1.38; font-weight: 600;
-    max-width: 780px; letter-spacing: -.3px;
-  }
-  .tag em { font-style: normal; color: #4fe0cd; }
-  ul { margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; }
-  li {
-    list-style: none; font-size: 14.5px; font-weight: 500;
-    padding: 9px 15px; border-radius: 999px;
-    background: rgba(79, 224, 205, .1);
-    border: 1px solid rgba(79, 224, 205, .28);
-    color: #b8ece4;
-  }
-  .badge {
-    position: absolute; right: 72px; bottom: 62px;
-    font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
-    color: rgba(234, 243, 242, .45);
-  }
-  .pill {
-    position: absolute; right: 74px; top: 108px;
-    display: flex; align-items: center; gap: 10px;
-    padding: 13px 20px 13px 16px;
-    border-radius: 999px;
-    background: #eef2f4; color: #10161a;
-    font-size: 14.5px; font-weight: 650;
-    box-shadow: 0 22px 46px rgba(0, 0, 0, .45);
-  }
-  .pill svg { color: #0d7669; }
-  .pill .pct { color: #0d7669; font-variant-numeric: tabular-nums; }
+:root{--accent:#0e8c7d;--accent-2:#07514b;--ink:#0e1f1d;--body:#4b5c5a;--muted:#859795;--line:#dcebe8}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1400px;height:560px;overflow:hidden}
+body{background:#fbfdfc;color:var(--body);font-family:"Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.tile{position:relative;width:1400px;height:560px;overflow:hidden;display:flex;align-items:center;gap:44px;padding:0 76px;background:
+linear-gradient(135deg,#ffffff 0%, color-mix(in srgb, var(--accent) 7%, #ffffff) 52%, color-mix(in srgb, var(--accent-2) 16%, #ffffff) 100%)}
+.tile::before{content:"";position:absolute;right:-130px;top:-190px;width:620px;height:620px;border-radius:50%;border:1px solid color-mix(in srgb, var(--accent) 20%, #ffffff);box-shadow:0 0 0 64px color-mix(in srgb, var(--accent) 5%, rgba(255,255,255,0)),0 0 0 128px color-mix(in srgb, var(--accent-2) 4%, rgba(255,255,255,0));pointer-events:none}
+.tile::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+.copy{position:relative;z-index:1;flex:1;min-width:0;max-width:900px}
+.brand{display:flex;align-items:center;gap:13px;margin-bottom:20px}
+.brand img{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:#fff;box-shadow:0 8px 18px rgba(11,60,54,.12)}
+.brand b{color:var(--ink);font-size:20px;font-weight:800;letter-spacing:-.02em}
+.badge{margin-left:8px;padding:5px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--accent) 22%, var(--line));background:rgba(255,255,255,.76);color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+h1{color:var(--ink);font-size:56px;line-height:1.04;letter-spacing:-.04em;font-weight:800;margin-bottom:14px}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{max-width:780px;margin-bottom:18px;color:var(--body);font-size:18px;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.8);color:var(--ink);font-size:12.5px;font-weight:650}
+.plans{display:grid;gap:8px;max-width:860px}
+.plan{display:flex;align-items:flex-start;gap:9px;color:var(--body);font-size:13.5px;line-height:1.45}
+.tag{flex:none;margin-top:1px;padding:2px 8px;border-radius:6px;background:color-mix(in srgb, var(--accent) 9%, #ffffff);color:var(--accent);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.plan.premium .tag{background:var(--accent);color:#fff}
+.visual{position:relative;z-index:1;width:310px;flex:none;display:flex;flex-direction:column;align-items:center;gap:17px}
+.icon-card{position:relative;width:250px;height:250px;display:grid;place-items:center;border-radius:54px;border:1px solid #fff;background:rgba(255,255,255,.72);box-shadow:0 30px 65px rgba(11,60,54,.2);transform:rotate(-4deg)}
+.icon-card img{width:174px;height:174px;object-fit:contain;border-radius:38px}
+.icon-glow{position:absolute;width:300px;height:300px;border-radius:50%;background:color-mix(in srgb, var(--accent-2) 18%, rgba(255,255,255,0));filter:blur(12px);z-index:-1}
+.site{color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.04em}
+.foot{position:absolute;left:76px;bottom:22px;z-index:1;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
 </style>
 </head>
 <body>
-  <div class="row">
-    <img class="icon" src="../icons/icon128.png" alt="">
-    <div>
-      <h1>VKT ReadPos</h1>
-      <div class="sub">Resume reading &amp; page scenes · Chrome / Edge</div>
+<div class="tile">
+  <div class="copy">
+    <div class="brand"><img src="icons/icon128.png" alt="" width="42" height="42"><b>VKT ReadPos</b><span class="badge">Chrome · Edge · Firefox</span></div>
+    <h1>Your place,<br><em>handed back.</em></h1>
+    <p class="sub">ReadPos remembers where you stopped on every page — the scroll position on Free, the whole scene on Pro. One quiet control takes you back, and nothing leaves your machine.</p>
+    <div class="chips"><span class="chip">Per-page scroll memory</span><span class="chip">SPA routes kept apart</span><span class="chip">No account</span><span class="chip">No telemetry</span></div>
+    <div class="plans">
+      <div class="plan"><span class="tag">Free</span><span>resume pill, per-site pause, 20-page history, JSON import &amp; export</span></div>
+      <div class="plan premium"><span class="tag">Pro</span><span>page scenes, 500-page history, pill delay &amp; fade, ignore rules</span></div>
     </div>
   </div>
-
-  <div class="tag">Your place, handed back — <em>scroll position, form fields and open panels</em>, saved locally and restored in one click.</div>
-
-  <ul>
-    <li>Continue where you left off</li>
-    <li>Per-page scene snapshots</li>
-    <li>SPA routes tracked apart</li>
-    <li>No account, no telemetry</li>
-  </ul>
-
-  <div class="pill">
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z"/></svg>
-    <span>Continue where you left off</span>
-    <span class="pct">62%</span>
+  <div class="visual">
+    <div class="icon-card"><span class="icon-glow" aria-hidden="true"></span><img src="icons/icon128.png" alt="VKT ReadPos" width="174" height="174"></div>
+    <div class="site">annmax1983.com</div>
   </div>
-
-  <div class="badge">annmax1983.com</div>
+  <div class="foot">Free + optional Pro · Chrome, Edge &amp; Firefox · Nothing leaves your machine</div>
+</div>
 </body>
 </html>

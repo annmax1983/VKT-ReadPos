@@ -2,7 +2,7 @@
 
 English | [中文](languages/README_zh.md) | [日本語](languages/README_ja.md) | [Deutsch](languages/README_de.md) | [Español](languages/README_es.md) | [Français](languages/README_fr.md)
 
-Reading position memory and page scene snapshots for Chrome and Edge. Every long page remembers where you stopped; short pages that hold state — a dashboard, a half-filled form, a ticket you were writing — can be saved as a *scene* and brought back whole.
+Reading position memory and page scene snapshots for Chrome, Edge and Firefox. Every long page remembers where you stopped; short pages that hold state — a dashboard, a half-filled form, a ticket you were writing — can be saved as a *scene* and brought back whole.
 
 Everything is computed and stored on your device. No account, no sync service, no telemetry. The only network request this extension ever makes is licence validation.
 
@@ -19,7 +19,7 @@ Everything is computed and stored on your device. No account, no sync service, n
 - **Your data, portable** — JSON export and import, free.
 - **Ask before restoring** — a scene restore always shows what will be overwritten first. On by default, and free: a confirmation step is not an upsell.
 
-## Pro (US$9.90, one-time)
+## Pro (US$9.99, one-time)
 
 | | Free | Pro |
 |---|---|---|
@@ -60,14 +60,14 @@ Values are written through the native property setter and followed by `input` an
 
 ## How it works
 
-1. Scroll any page. ~600 ms after you stop, the offset is written to `chrome.storage.local` under a normalised URL key.
+1. Scroll any page. ~600 ms after you stop, the offset is written to extension storage (`chrome.storage.local`, `browser.storage.local` on Firefox) under a normalised URL key.
 2. Come back to the page. If the saved offset is past the trigger distance and you are still near the top, the pill appears after 600 ms.
 3. Click it — the page smooth-scrolls to your spot. If the page has grown since (lazy images), the restore retries and then stays quiet.
 4. On Pro, **Save scene** in the popup (or the optional shortcut) captures scroll + fields. **Restore** shows a confirmation panel listing what will be overwritten, then writes everything back.
 
 ## Privacy
 
-- Reading positions, scenes and settings live in `chrome.storage.local`. Nothing is uploaded.
+- Reading positions, scenes and settings live in extension storage (`chrome.storage.local`, `browser.storage.local` on Firefox). Nothing is uploaded.
 - No analytics, no telemetry, no accounts.
 - Captured values never leave the browser: restoring a scene is a local read and a local write.
 - The only network call is licence activation/validation against `api.annmax1983.com`, and only after you enter a key.
@@ -79,11 +79,23 @@ Values are written through the native property setter and followed by `input` an
 | `storage` | Positions, scenes, settings, licence state — all local |
 | `http://*/*`, `https://*/*` | The content script has to exist on every page **before** you scroll, otherwise there is nothing to remember. Unlike a bookmark tool, this one cannot wait to be asked per site. It is the reason this extension asks for broad page access, and the store listing says so plainly. |
 
-No `tabs`, no `scripting`, no `debugger`, no `activeTab`: tab metadata comes from the host permission, and the content script is declarative. Nothing runs on `chrome://` or `edge://` pages, `file://` or another extension's pages.
+No `tabs`, no `scripting`, no `debugger`, no `activeTab`: tab metadata comes from the host permission, and the content script is declarative. Nothing runs on `chrome://`, `edge://` or `about:` pages, `file://` or another extension's pages.
 
 ## Supported browsers
 
-Chrome and Edge (Manifest V3, Chrome 116+). No Firefox build yet.
+| Browser | Where the build lives | Minimum |
+|---|---|---|
+| Chrome | this repository | Chrome 116 — Manifest V3, `background.service_worker` |
+| Edge | this repository, same package as Chrome | Edge 116 |
+| Firefox | `codeup/VKT-ReadPos` | Firefox 140 — Manifest V3, `background.scripts` |
+
+The two builds are the same extension. `common.js`, `content/content.js`, `popup/`, `_locales/`, the icons and every document in this repository are shared; a JSON export from one imports into the other unchanged. Only three things differ:
+
+- **`manifest.json`** — a background *page* loaded from a script list instead of a service worker, a `browser_specific_settings.gecko` id, and Firefox's data-collection declaration (required by AMO since Firefox 140).
+- **The API namespace** — Firefox gets `browser.*` with promises instead of `chrome.*` with callbacks. That is the only code change; there is no polyfill and no build-time transform.
+- **Packaging** — the Firefox build writes `dist/` plus an unminified source zip, which AMO requires alongside every minified upload.
+
+One user-visible difference: the optional keyboard shortcut is set in Firefox's Add-ons Manager (about:addons → gear icon → Manage Extension Shortcuts) instead of `chrome://extensions/shortcuts`.
 
 ## Development
 
@@ -95,6 +107,15 @@ npm run locales     # regenerate _locales/*/messages.json from tools/make-locale
 npm run icons       # regenerate icons/*.png + assets/icon-master.png
 npm run shoot       # store screenshots → screenshots/ (needs Chrome)
 npm run e2e         # live browser check of the shipping scripts (needs puppeteer-core)
+```
+
+The Firefox build in `codeup/VKT-ReadPos` has the same scripts, plus `npm run` targets that only make sense there:
+
+```bash
+node scripts/build.js      # dist/ + publish/readpos-v{version}.zip + ...-source.zip (AMO)
+node --test                # 100 assertions against the browser.* promise mocks
+node tools/e2e.js          # 71 assertions in a real browser, against the browser.* mocks
+node tools/firefox-check.js  # installs dist/ into a real Firefox and screenshots the popup
 ```
 
 Layout:
@@ -110,8 +131,10 @@ _locales/            en, zh_CN, ja, de, es, fr — 105 keys, identical key sets
 tools/               locale generator, icon renderer, screenshot harness
 index.html            landing page — workspace standard template, 6 languages
 privacy-policy.html   policy page, 8 sections × 6 languages (family template)
-store-listing/        six CRLF text files, one per store language
+store-listing/        six CRLF text files, one per store language (Chrome / Edge)
 ```
+
+The Firefox store copy is not in this repository: AMO takes one listing per add-on, so it is a single six-language `store-listing/description.txt` in `codeup/VKT-ReadPos`, next to `amo-reviewer-notes.txt` and the release notes.
 
 Two details that are easy to break:
 

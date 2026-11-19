@@ -2,7 +2,7 @@
 
 [English](../README.md) | 中文 | [日本語](README_ja.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
-Chrome 与 Edge 扩展：记住每个页面读到哪儿，并把「整页现场」保存下来随时恢复。
+Chrome、Edge 与 Firefox 扩展：记住每个页面读到哪儿，并把「整页现场」保存下来随时恢复。
 
 **阅读续读**服务「长文读到一半」；**现场快照**服务「操作页面做到一半」。
 所有计算和存储都在本机完成，无账号、无同步服务、无埋点；唯一的联网请求是授权校验。
@@ -20,7 +20,7 @@ Chrome 与 Edge 扩展：记住每个页面读到哪儿，并把「整页现场�
 - **数据可携带**：JSON 导出 / 导入，免费。
 - **恢复前先确认**：恢复现场前会列出将被覆盖的内容。默认开启，且免费——确认步骤不是付费点。
 
-## Pro（9.9 美元一次性买断）
+## Pro（9.99 美元一次性买断）
 
 | | 免费 | Pro |
 |---|---|---|
@@ -61,14 +61,14 @@ Chrome 与 Edge 扩展：记住每个页面读到哪儿，并把「整页现场�
 
 ## 工作原理
 
-1. 滚动任意页面，停止约 600ms 后位置按归一化 URL 写入 `chrome.storage.local`。
+1. 滚动任意页面，停止约 600ms 后位置按归一化 URL 写入扩展本地存储（`chrome.storage.local`，Firefox 上是 `browser.storage.local`）。
 2. 再次回到该页面，若保存位置超过触发距离、且当前仍在顶部附近，浮标在 600ms 后出现。
 3. 点它，平滑滚回原处；页面变高（懒加载图片）时会重试，仍不可达就静默。
 4. Pro 可在 Popup 里「保存现场」（或按快捷键），恢复时先弹确认面板列出要覆盖的内容，再整体写回。
 
 ## 隐私
 
-- 位置、现场、设置都在 `chrome.storage.local`，不上传。
+- 位置、现场、设置都在扩展本地存储（`chrome.storage.local`，Firefox 上是 `browser.storage.local`），不上传。
 - 无统计、无埋点、无账号。
 - 采集到的字段值不离开浏览器：恢复只是本地读 + 本地写。
 - 唯一的网络请求是授权激活/校验，只在你输入授权码之后发生。
@@ -80,7 +80,19 @@ Chrome 与 Edge 扩展：记住每个页面读到哪儿，并把「整页现场�
 | `storage` | 位置、现场、设置、授权状态，全部本地 |
 | `http://*/*`、`https://*/*` | 内容脚本必须在**你滚动之前**就存在于每个页面，否则没有东西可记。与书签类工具不同，这个工具没法等到你逐站点授权——这也是它申请广泛页面访问权限的原因，商店说明里已明确写出。 |
 
-没有 `tabs`、`scripting`、`debugger`、`activeTab`。Chrome 的 `chrome://`、Edge 的 `edge://`、`file://` 和其他扩展页面不运行任何脚本。
+没有 `tabs`、`scripting`、`debugger`、`activeTab`。Chrome 的 `chrome://`、Edge 的 `edge://`、Firefox 的 `about:`、`file://` 和其他扩展页面不运行任何脚本。
+
+## 支持的浏览器
+
+| 浏览器 | 构建在哪 | 最低版本 |
+|---|---|---|
+| Chrome | 本仓库 | Chrome 116 —— Manifest V3，`background.service_worker` |
+| Edge | 本仓库，与 Chrome 同一个包 | Edge 116 |
+| Firefox | `codeup/VKT-ReadPos` | Firefox 140 —— Manifest V3，`background.scripts` |
+
+两个构建是同一个扩展：`common.js`、`content/content.js`、`popup/`、`_locales/`、图标与本文档都共用，一边导出的 JSON 另一边可直接导入。差异只有三处：清单（后台是脚本列表加载的事件页，而不是 service worker；另有 gecko id 与 AMO 要求的数据收集声明）、API 命名空间（Firefox 用 Promise 版的 `browser.*`，不是回调版 `chrome.*`），以及打包脚本（Firefox 版额外产出审核用源码 zip）。
+
+用户能看到的唯一差别：可选快捷键要在 Firefox 的附加组件管理器里设置（about:addons → 齿轮图标 → 管理扩展快捷键），而不是 `chrome://extensions/shortcuts`。
 
 ## 开发
 

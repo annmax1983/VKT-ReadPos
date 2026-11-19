@@ -2,7 +2,7 @@
 
 [English](../README.md) | [中文](README_zh.md) | [日本語](README_ja.md) | [Deutsch](README_de.md) | Español | [Français](README_fr.md)
 
-Posición de lectura y escenas de página para Chrome y Edge. Cada página larga recuerda dónde lo dejaste; las páginas cortas con estado — un panel, un formulario a medias, un ticket empezado — se pueden guardar como *escena* y recuperar enteras.
+Posición de lectura y escenas de página para Chrome, Edge y Firefox. Cada página larga recuerda dónde lo dejaste; las páginas cortas con estado — un panel, un formulario a medias, un ticket empezado — se pueden guardar como *escena* y recuperar enteras.
 
 Todo se calcula y se guarda en tu dispositivo. Sin cuenta, sin servicio de sincronización, sin telemetría. La única petición de red es la validación de la licencia.
 
@@ -19,7 +19,7 @@ Todo se calcula y se guarda en tu dispositivo. Sin cuenta, sin servicio de sincr
 - **Tus datos son portables** — exportar e importar JSON, gratis.
 - **Preguntar antes de restaurar** — siempre se muestra qué se va a sobrescribir. Activado por defecto y gratis: una confirmación no es un extra de pago.
 
-## Pro (9,90 USD, pago único)
+## Pro (9,99 USD, pago único)
 
 | | Gratis | Pro |
 |---|---|---|
@@ -51,7 +51,7 @@ Valores de `input` (text, email, url, tel, number, search, date…), `textarea`,
 
 ## Privacidad
 
-Posiciones, escenas y ajustes viven solo en `chrome.storage.local`. Sin estadísticas, sin telemetría, sin cuentas. Los valores capturados no salen del navegador; la única conexión es la validación de licencia contra `api.annmax1983.com`.
+Posiciones, escenas y ajustes viven solo en el almacenamiento local de la extensión (`chrome.storage.local`, `browser.storage.local` en Firefox). Sin estadísticas, sin telemetría, sin cuentas. Los valores capturados no salen del navegador; la única conexión es la validación de licencia contra `api.annmax1983.com`.
 
 ## Permisos
 
@@ -60,7 +60,19 @@ Posiciones, escenas y ajustes viven solo en `chrome.storage.local`. Sin estadís
 | `storage` | Posiciones, escenas, ajustes y estado de licencia — todo local |
 | `http://*/*`, `https://*/*` | El script de contenido debe existir en cada página **antes** de que te desplaces, o no habrá nada que recordar. A diferencia de un marcador, aquí no se puede pedir permiso sitio a sitio más tarde: de ahí el acceso amplio, indicado con claridad en la ficha de la tienda. |
 
-Sin `tabs`, `scripting`, `debugger` ni `activeTab`. Nada se ejecuta en páginas `chrome://` (Chrome), `edge://` (Edge), `file://` ni páginas de otras extensiones.
+Sin `tabs`, `scripting`, `debugger` ni `activeTab`. Nada se ejecuta en páginas `chrome://` (Chrome), `edge://` (Edge), `about:` (Firefox), `file://` ni páginas de otras extensiones.
+
+## Navegadores compatibles
+
+| Navegador | Dónde está la compilación | Mínimo |
+|---|---|---|
+| Chrome | este repositorio | Chrome 116 — Manifest V3, `background.service_worker` |
+| Edge | este repositorio, el mismo paquete que Chrome | Edge 116 |
+| Firefox | `codeup/VKT-ReadPos` | Firefox 140 — Manifest V3, `background.scripts` |
+
+Las dos compilaciones son la misma extensión: `common.js`, `content/content.js`, `popup/`, `_locales/`, los iconos y este documento se comparten, y un JSON exportado de una se importa en la otra sin cambios. Solo cambian tres cosas: el manifiesto (una página de eventos cargada desde una lista de scripts en lugar de un service worker, más un id de gecko y la declaración de datos que exige AMO), el espacio de nombres de la API (Firefox usa `browser.*` con promesas, no `chrome.*` con callbacks) y el empaquetado (la versión de Firefox genera además un zip de código sin minificar para la revisión).
+
+Una diferencia visible: el atajo de teclado opcional se define en el Gestor de complementos de Firefox (about:addons → engranaje → Gestionar atajos de la extensión), no en `chrome://extensions/shortcuts`.
 
 ## Desarrollo
 

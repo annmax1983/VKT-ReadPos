@@ -2,7 +2,7 @@
 
 [English](../README.md) | [中文](README_zh.md) | [日本語](README_ja.md) | Deutsch | [Español](README_es.md) | [Français](README_fr.md)
 
-Leseposition und Seitenzustand für Chrome und Edge. Jede lange Seite merkt sich, wo Sie aufgehört haben; kürzere Seiten mit Zustand — ein Dashboard, ein halb ausgefülltes Formular, ein angefangenes Ticket — lassen sich als *Zustand* sichern und vollständig zurückholen.
+Leseposition und Seitenzustand für Chrome, Edge und Firefox. Jede lange Seite merkt sich, wo Sie aufgehört haben; kürzere Seiten mit Zustand — ein Dashboard, ein halb ausgefülltes Formular, ein angefangenes Ticket — lassen sich als *Zustand* sichern und vollständig zurückholen.
 
 Alles wird auf Ihrem Gerät berechnet und gespeichert. Kein Konto, kein Sync-Dienst, keine Telemetrie. Die einzige Netzwerkanfrage ist die Lizenzprüfung.
 
@@ -19,7 +19,7 @@ Alles wird auf Ihrem Gerät berechnet und gespeichert. Kein Konto, kein Sync-Die
 - **Daten mitnehmbar** — JSON-Export und -Import, kostenlos.
 - **Nachfragen vor dem Wiederherstellen** — vor jedem Zurückschreiben wird gezeigt, was überschrieben wird. Standardmäßig an, und kostenlos: eine Sicherheitsabfrage ist kein Verkaufsargument.
 
-## Pro (9,90 US-Dollar, einmalig)
+## Pro (9,99 US-Dollar, einmalig)
 
 | | Kostenlos | Pro |
 |---|---|---|
@@ -51,7 +51,7 @@ Werte von `input` (text, email, url, tel, number, search, date …), `textarea`,
 
 ## Datenschutz
 
-Positionen, Zustände und Einstellungen liegen ausschließlich in `chrome.storage.local`. Keine Statistik, keine Telemetrie, keine Konten. Erfasste Werte verlassen den Browser nicht; die einzige Netzwerkanfrage ist die Lizenzprüfung gegen `api.annmax1983.com`.
+Positionen, Zustände und Einstellungen liegen ausschließlich im lokalen Speicher der Erweiterung (`chrome.storage.local`, unter Firefox `browser.storage.local`). Keine Statistik, keine Telemetrie, keine Konten. Erfasste Werte verlassen den Browser nicht; die einzige Netzwerkanfrage ist die Lizenzprüfung gegen `api.annmax1983.com`.
 
 ## Berechtigungen
 
@@ -60,7 +60,19 @@ Positionen, Zustände und Einstellungen liegen ausschließlich in `chrome.storag
 | `storage` | Positionen, Zustände, Einstellungen, Lizenzstatus — alles lokal |
 | `http://*/*`, `https://*/*` | Das Content-Script muss **vor** dem Scrollen auf jeder Seite existieren, sonst gibt es nichts zu merken. Anders als bei einem Lesezeichen-Tool lässt sich das nicht pro Website nachträglich erfragen — daher der breite Seitenzugriff, den die Store-Beschreibung ausdrücklich nennt. |
 
-Kein `tabs`, kein `scripting`, kein `debugger`, kein `activeTab`. Auf `chrome://`-Seiten (Chrome), `edge://`-Seiten (Edge), `file://` und den Seiten anderer Erweiterungen läuft nichts.
+Kein `tabs`, kein `scripting`, kein `debugger`, kein `activeTab`. Auf `chrome://`-Seiten (Chrome), `edge://`-Seiten (Edge), `about:`-Seiten (Firefox), `file://` und den Seiten anderer Erweiterungen läuft nichts.
+
+## Unterstützte Browser
+
+| Browser | Wo der Build liegt | Minimum |
+|---|---|---|
+| Chrome | dieses Repository | Chrome 116 — Manifest V3, `background.service_worker` |
+| Edge | dieses Repository, dasselbe Paket wie Chrome | Edge 116 |
+| Firefox | `codeup/VKT-ReadPos` | Firefox 140 — Manifest V3, `background.scripts` |
+
+Beide Builds sind dieselbe Erweiterung: `common.js`, `content/content.js`, `popup/`, `_locales/`, die Icons und dieses Dokument sind gemeinsam, und ein JSON-Export des einen lässt sich unverändert in den anderen importieren. Nur drei Dinge unterscheiden sich: das Manifest (eine Event-Page aus einer Skriptliste statt eines Service Workers, dazu eine gecko-id und die von AMO verlangte Datenerklärung), der API-Namensraum (Firefox nutzt `browser.*` mit Promises statt `chrome.*` mit Callbacks) und das Packaging (der Firefox-Build erzeugt zusätzlich ein unminifiziertes Quell-Zip für die Prüfung).
+
+Ein sichtbarer Unterschied: Der optionale Tastaturkurzbefehl wird im Add-ons-Manager von Firefox gesetzt (about:addons → Zahnrad → Tastenkürzel verwalten), nicht unter `chrome://extensions/shortcuts`.
 
 ## Entwicklung
 

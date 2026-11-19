@@ -2,7 +2,7 @@
 
 [English](../README.md) | [中文](README_zh.md) | 日本語 | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
-Chrome と Edge 向けの拡張機能。ページごとに「どこまで読んだか」を覚え、ページの状態そのもの（スクロール位置・入力内容・開いているパネル）を保存して後で復元できます。
+Chrome・Edge・Firefox 向けの拡張機能。ページごとに「どこまで読んだか」を覚え、ページの状態そのもの（スクロール位置・入力内容・開いているパネル）を保存して後で復元できます。
 
 計算も保存もすべて端末内で完結します。アカウントなし、同期サービスなし、計測なし。通信が発生するのはライセンス確認のときだけです。
 
@@ -19,7 +19,7 @@ Chrome と Edge 向けの拡張機能。ページごとに「どこまで読ん�
 - **データは持ち出せる**：JSON のエクスポート／インポートは無料。
 - **復元前に確認**：現場を戻す前に、上書きされる内容を必ず表示します。既定でオン、しかも無料です（確認は課金対象ではありません）。
 
-## Pro（9.9 USD 買い切り）
+## Pro（9.99 USD 買い切り）
 
 | | 無料 | Pro |
 |---|---|---|
@@ -51,7 +51,7 @@ Chrome と Edge 向けの拡張機能。ページごとに「どこまで読ん�
 
 ## プライバシー
 
-位置・現場・設定は `chrome.storage.local` にのみ保存されます。統計も計測もアカウントもありません。取得した値がブラウザの外に出ることはなく、通信はライセンスの有効化・確認（`api.annmax1983.com`）だけです。
+位置・現場・設定は拡張機能のローカルストレージ（`chrome.storage.local`、Firefox では `browser.storage.local`）にのみ保存されます。統計も計測もアカウントもありません。取得した値がブラウザの外に出ることはなく、通信はライセンスの有効化・確認（`api.annmax1983.com`）だけです。
 
 ## 権限
 
@@ -60,7 +60,19 @@ Chrome と Edge 向けの拡張機能。ページごとに「どこまで読ん�
 | `storage` | 位置、現場、設定、ライセンス状態（すべてローカル） |
 | `http://*/*`、`https://*/*` | スクロール**より前**にコンテンツスクリプトが存在しないと記録できません。サイトごとに後から許可を求める方式は使えないため、広いページアクセスを要求します（ストアの説明にも明記）。 |
 
-`tabs` / `scripting` / `debugger` / `activeTab` は使用しません。Chrome の `chrome://`、Edge の `edge://`、`file://`、他の拡張機能のページでは何も動作しません。
+`tabs` / `scripting` / `debugger` / `activeTab` は使用しません。Chrome の `chrome://`、Edge の `edge://`、Firefox の `about:`、`file://`、他の拡張機能のページでは何も動作しません。
+
+## 対応ブラウザー
+
+| ブラウザー | ビルドの場所 | 最低バージョン |
+|---|---|---|
+| Chrome | このリポジトリー | Chrome 116 —— Manifest V3、`background.service_worker` |
+| Edge | このリポジトリー（Chrome と同じパッケージ） | Edge 116 |
+| Firefox | `codeup/VKT-ReadPos` | Firefox 140 —— Manifest V3、`background.scripts` |
+
+2 つのビルドは同じ拡張機能です。`common.js`、`content/content.js`、`popup/`、`_locales/`、アイコン、この文書はすべて共用で、片方の JSON 書き出しはもう片方にそのまま読み込めます。違いは 3 点だけです：マニフェスト（バックグラウンドはスクリプト一覧で読み込むイベントページで、サービスワーカーではない。gecko id と AMO が要求するデータ収集の申告も含む）、API の名前空間（Firefox は Promise ベースの `browser.*` で、コールバック版 `chrome.*` ではない）、パッケージング（Firefox 版は審査用の未圧縮ソース zip も出力）。
+
+ユーザーに見える唯一の違い：任意のショートカットは Firefox のアドオンマネージャー（about:addons → 歯車アイコン → 拡張機能のショートカットを管理）で設定します。`chrome://extensions/shortcuts` ではありません。
 
 ## 開発
 

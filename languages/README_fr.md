@@ -2,7 +2,7 @@
 
 [English](../README.md) | [中文](README_zh.md) | [日本語](README_ja.md) | [Deutsch](README_de.md) | [Español](README_es.md) | Français
 
-Position de lecture et scènes de page pour Chrome et Edge. Chaque page longue retient où vous vous êtes arrêté ; les pages courtes qui portent un état — un tableau de bord, un formulaire à moitié rempli, un ticket commencé — peuvent être enregistrées comme *scène* et restaurées en entier.
+Position de lecture et scènes de page pour Chrome, Edge et Firefox. Chaque page longue retient où vous vous êtes arrêté ; les pages courtes qui portent un état — un tableau de bord, un formulaire à moitié rempli, un ticket commencé — peuvent être enregistrées comme *scène* et restaurées en entier.
 
 Tout est calculé et stocké sur votre appareil. Pas de compte, pas de service de synchronisation, pas de télémétrie. La seule requête réseau est la validation de licence.
 
@@ -19,7 +19,7 @@ Tout est calculé et stocké sur votre appareil. Pas de compte, pas de service d
 - **Vos données sont portables** — export et import JSON, gratuits.
 - **Demander avant de restaurer** — ce qui sera écrasé est toujours affiché d'abord. Activé par défaut et gratuit : une confirmation n'est pas un argument de vente.
 
-## Pro (9,90 USD, paiement unique)
+## Pro (9,99 USD, paiement unique)
 
 | | Gratuit | Pro |
 |---|---|---|
@@ -51,7 +51,7 @@ Valeurs des `input` (text, email, url, tel, number, search, date…), des `texta
 
 ## Confidentialité
 
-Positions, scènes et réglages vivent uniquement dans `chrome.storage.local`. Pas de statistiques, pas de télémétrie, pas de comptes. Les valeurs capturées ne quittent pas le navigateur ; la seule connexion est la validation de licence auprès de `api.annmax1983.com`.
+Positions, scènes et réglages vivent uniquement dans le stockage local de l’extension (`chrome.storage.local`, `browser.storage.local` sous Firefox). Pas de statistiques, pas de télémétrie, pas de comptes. Les valeurs capturées ne quittent pas le navigateur ; la seule connexion est la validation de licence auprès de `api.annmax1983.com`.
 
 ## Autorisations
 
@@ -60,7 +60,19 @@ Positions, scènes et réglages vivent uniquement dans `chrome.storage.local`. P
 | `storage` | Positions, scènes, réglages et état de licence — tout en local |
 | `http://*/*`, `https://*/*` | Le script de contenu doit exister sur chaque page **avant** votre défilement, sinon il n'y a rien à retenir. Contrairement à un outil de favoris, il ne peut pas attendre qu'on le demande site par site : d'où l'accès large, indiqué clairement dans la fiche du store. |
 
-Pas de `tabs`, `scripting`, `debugger` ni `activeTab`. Rien ne s'exécute sur les pages `chrome://` (Chrome), `edge://` (Edge), `file://` ou les pages d'autres extensions.
+Pas de `tabs`, `scripting`, `debugger` ni `activeTab`. Rien ne s'exécute sur les pages `chrome://` (Chrome), `edge://` (Edge), `about:` (Firefox), `file://` ou les pages d'autres extensions.
+
+## Navigateurs pris en charge
+
+| Navigateur | Où se trouve la version | Minimum |
+|---|---|---|
+| Chrome | ce dépôt | Chrome 116 — Manifest V3, `background.service_worker` |
+| Edge | ce dépôt, même paquet que Chrome | Edge 116 |
+| Firefox | `codeup/VKT-ReadPos` | Firefox 140 — Manifest V3, `background.scripts` |
+
+Les deux versions sont la même extension : `common.js`, `content/content.js`, `popup/`, `_locales/`, les icônes et ce document sont partagés, et un export JSON de l’une s’importe tel quel dans l’autre. Trois choses seulement diffèrent : le manifeste (une page d’événements chargée depuis une liste de scripts au lieu d’un service worker, plus un identifiant gecko et la déclaration de données exigée par AMO), l’espace de noms de l’API (Firefox utilise `browser.*` avec des promesses, pas `chrome.*` avec des callbacks) et l’empaquetage (la version Firefox produit en plus un zip de sources non minifiées pour la relecture).
+
+Une différence visible : le raccourci clavier facultatif se règle dans le Gestionnaire de modules de Firefox (about:addons → roue dentée → Gérer les raccourcis de l’extension), pas dans `chrome://extensions/shortcuts`.
 
 ## Développement
 
