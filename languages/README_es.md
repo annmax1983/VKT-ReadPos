@@ -2,85 +2,115 @@
 
 [English](../README.md) | [中文](README_zh.md) | [日本語](README_ja.md) | [Deutsch](README_de.md) | Español | [Français](README_fr.md)
 
-Posición de lectura y escenas de página para Chrome, Edge y Firefox. Cada página larga recuerda dónde lo dejaste; las páginas cortas con estado — un panel, un formulario a medias, un ticket empezado — se pueden guardar como *escena* y recuperar enteras.
+Posición de lectura y escenas de página para Chrome, Edge y Firefox. Cada página larga recuerda dónde lo dejaste; las páginas con estado — un panel, un formulario a medias, un ticket empezado — se pueden guardar como *escena* y recuperar enteras.
 
-Todo se calcula y se guarda en tu dispositivo. Sin cuenta, sin servicio de sincronización, sin telemetría. La única petición de red es la validación de la licencia.
+Instalación: https://annmax1983.com/extensions/readpos
 
-## Gratis
+## Funciones
 
-- **Posición por página** — se escribe 600 ms después de dejar de desplazarte, y otra vez al ocultar o cerrar la pestaña. Nunca escrituras por píxel.
-- **Botón de continuación** — al reabrir la página aparece abajo a la derecha *Sigue donde lo dejaste · 62%*. Un clic desplaza suavemente hasta allí. **Nunca mueve la página por su cuenta.**
-- **Discreto** — el botón se desvanece a los pocos segundos; mover el puntero a la esquina inferior derecha lo recupera. No dibuja nada más.
-- **Las páginas cortas callan** — una posición por debajo del umbral (600 px por defecto) no se ofrece.
-- **Pausar este sitio / Borrar esta página** — a un clic desde el popup.
-- **20 páginas de historial** — con el porcentaje alcanzado; clic en una fila para reabrirla.
-- **Rutas SPA separadas** — `/app/inbox` y `/app/settings` son páginas distintas; los routers con hash (`#/route`) también.
-- **Carga diferida contemplada** — si la posición guardada supera la altura actual del documento, se reintenta dos veces y luego se abandona en silencio.
-- **Tus datos son portables** — exportar e importar JSON, gratis.
-- **Preguntar antes de restaurar** — siempre se muestra qué se va a sobrescribir. Activado por defecto y gratis: una confirmación no es un extra de pago.
+### Posiciones de lectura (gratis)
 
-## Pro (9,99 USD, pago único)
+- **Por página, automático** — la posición se guarda 600 ms después de que dejes de desplazarte, y otra vez cuando la pestaña se oculta o se cierra.
+- **La píldora de continuación** — al reabrir una página aparece abajo a la derecha *Continuar donde lo dejaste · 62 %*. Un clic desplaza suavemente hasta allí. Nunca se desplaza sola.
+- **Discreta** — la píldora se desvanece a los pocos segundos; si llevas el puntero a la esquina inferior derecha, vuelve. No se dibuja nada más en la página.
+- **Las páginas cortas siguen calladas** — no se ofrecen posiciones por debajo del umbral (600 px por defecto).
+- **Pausar un sitio, borrar una página** — un clic cada uno, en el panel.
+- **20 entradas de historial** — el panel las lista con el porcentaje alcanzado; un clic en una fila reabre la página.
+- **Rutas SPA separadas** — `/app/inbox` y `/app/settings` son páginas distintas. Las rutas con hash (`#/route`) también.
+- **Páginas de carga diferida** — si la posición guardada supera la altura actual del documento, se reintenta dos veces y luego se abandona en silencio.
+- **Portátil** — exportación e importación JSON, gratis.
+- **Confirmación antes de restaurar** — antes de devolver una escena se lista qué se va a sobrescribir. Gratis y activa por defecto.
+
+### Pro
+
+- **Escenas de página** — guarda la posición más cada campo del formulario bajo un nombre que elijas, y devuélvelos todos después.
+- **500 entradas de historial** en lugar de 20.
+- **Tiempos de la píldora** — retardo, desvanecido y umbral ajustables.
+- **Lista de exclusión** — dominios y expresiones regulares.
+- **Varias escenas con nombre por página** — de 1 a 20.
+- **Campos de solo lectura** incluidos opcionalmente en una escena.
+- **Atajo de teclado** para guardar una escena.
+- **Escenas en la exportación** — el archivo JSON lleva posiciones y escenas.
 
 | | Gratis | Pro |
 |---|---|---|
 | Posiciones de lectura | ✅ | ✅ |
-| Páginas de historial | 20 | 500 |
-| Botón de continuación | tiempos fijos | retardo / desvanecido / umbral ajustables |
-| Excepciones | dominios | dominios **y** expresiones regulares |
-| Escenas (guardar + restaurar) | — | ✅ |
-| Campos de texto, textareas, selects, casillas, radios, paneles abiertos | — | ✅ |
+| Entradas de historial | 20 | 500 |
+| Píldora de continuación | tiempos fijos | retardo / desvanecido / umbral ajustables |
+| Lista de exclusión | dominios | dominios **y** expresiones regulares |
+| Escenas de página (guardar + restaurar) | — | ✅ |
+| Campos de texto, áreas de texto, selects, casillas, radios, paneles abiertos | — | ✅ |
 | Varias escenas con nombre por página | — | ✅ |
-| Escenas por página | — | configurable (1–20) |
+| Límite de escenas por página | — | configurable (1–20) |
 | Incluir campos de solo lectura | — | opcional |
-| Atajo de teclado para guardar | — | opcional (desactivado por defecto) |
-| Exportar / importar JSON | ✅ posiciones | ✅ posiciones + escenas |
+| Guardar con atajo | — | opcional (desactivado por defecto) |
+| Exportación / importación JSON | posiciones | posiciones + escenas |
 
-Una licencia funciona en dos navegadores. Quitarla libera la plaza. La validación se limita a una vez cada dos horas, funciona sin conexión con la licencia en caché y un fallo nunca te deja fuera.
+Una licencia se activa en dos navegadores. Al quitarla se libera la plaza.
 
-## Qué captura una escena
+## Qué guarda una escena
 
-Valores de `input` (text, email, url, tel, number, search, date…), `textarea`, la opción elegida de `select`, el estado de `checkbox`/`radio`, los `details` abiertos y la posición de desplazamiento. Se escribe mediante el setter nativo y se disparan `input` y `change`, así que React y Vue lo notan. Los campos se localizan por ruta estructural, luego por `id`, luego por `name`.
-
-### Lo que deliberadamente no toca
-
-- **Contraseñas, archivos, campos ocultos, códigos de un solo uso, números de tarjeta, CVV, IBAN, SSN** — excluidos al capturar, no filtrados al restaurar. No hay ajuste para activarlos.
-- **Campos de solo lectura y deshabilitados** — omitidos por defecto (Pro: solo lectura opcional).
-- **Paneles `role="tab"`** — estaba en el plan original y se eliminó: el estado de pestañas lo gestiona el framework, y escribir `aria-selected` no hace nada o provoca navegación. Una función que parece funcionar es peor que ninguna.
-- **Editores `contenteditable`** — no hay forma fiable y segura con frameworks de devolver el texto; se omite.
-- **Campos en shadow roots e iframes de otro origen** — no se puede construir una ruta estable; se omiten en lugar de adivinar.
-
-## Privacidad
-
-Posiciones, escenas y ajustes viven solo en el almacenamiento local de la extensión (`chrome.storage.local`, `browser.storage.local` en Firefox). Sin estadísticas, sin telemetría, sin cuentas. Los valores capturados no salen del navegador; la única conexión es la validación de licencia contra `api.annmax1983.com`.
-
-## Permisos
-
-| Permiso | Motivo |
+| Elemento | Se restaura |
 |---|---|
-| `storage` | Posiciones, escenas, ajustes y estado de licencia — todo local |
-| `http://*/*`, `https://*/*` | El script de contenido debe existir en cada página **antes** de que te desplaces, o no habrá nada que recordar. A diferencia de un marcador, aquí no se puede pedir permiso sitio a sitio más tarde: de ahí el acceso amplio, indicado con claridad en la ficha de la tienda. |
+| `input` de texto (`text`, `email`, `url`, `tel`, `number`, `search`, `date`, …) | el valor |
+| `textarea` | el valor |
+| `select` | la opción elegida (si no hay valor, se busca por la etiqueta) |
+| `checkbox`, `radio` | el estado de marcado |
+| `details` | abierto / cerrado |
+| posición de desplazamiento | sí, con la misma lógica de reintentos que la píldora |
 
-Sin `tabs`, `scripting`, `debugger` ni `activeTab`. Nada se ejecuta en páginas `chrome://` (Chrome), `edge://` (Edge), `about:` (Firefox), `file://` ni páginas de otras extensiones.
+Los valores vuelven por el setter nativo y van seguidos de eventos `input` y `change`, así que React y Vue lo notan. Los campos se localizan primero por ruta estructural, luego por `id` y luego por `name`, así que una página que se recoloca un poco se restaura igual.
 
-## Navegadores compatibles
+### Lo que no se guarda
 
-| Navegador | Dónde está la compilación | Mínimo |
-|---|---|---|
-| Chrome | este repositorio | Chrome 116 — Manifest V3, `background.service_worker` |
-| Edge | este repositorio, el mismo paquete que Chrome | Edge 116 |
-| Firefox | `codeup/VKT-ReadPos` | Firefox 140 — Manifest V3, `background.scripts` |
+- **Contraseñas, archivos, campos ocultos, códigos de un solo uso, números de tarjeta, CVV, IBAN, SSN** — se excluyen al capturar. Ningún ajuste los reactiva.
+- **Campos de solo lectura y desactivados** — salvo que actives la inclusión de solo lectura (Pro).
+- **Paneles `role="tab"` y editores `contenteditable`** — no hay forma segura de devolver el estado sin romper el framework, así que se dejan fuera en lugar de a medias.
+- **Campos dentro de shadow roots e iframes de otro origen** — no se puede construir una ruta estable a través de esos límites.
 
-Las dos compilaciones son la misma extensión: `common.js`, `content/content.js`, `popup/`, `_locales/`, los iconos y este documento se comparten, y un JSON exportado de una se importa en la otra sin cambios. Solo cambian tres cosas: el manifiesto (una página de eventos cargada desde una lista de scripts en lugar de un service worker, más un id de gecko y la declaración de datos que exige AMO), el espacio de nombres de la API (Firefox usa `browser.*` con promesas, no `chrome.*` con callbacks) y el empaquetado (la versión de Firefox genera además un zip de código sin minificar para la revisión).
+## Uso
 
-Una diferencia visible: el atajo de teclado opcional se define en el Gestor de complementos de Firefox (about:addons → engranaje → Gestionar atajos de la extensión), no en `chrome://extensions/shortcuts`.
+### Leer
 
-## Desarrollo
+1. Desplázate por cualquier página. Al parar, la posición queda guardada.
+2. Vuelve a esa página. Si sigues cerca del principio, la píldora aparece al cabo de un momento abajo a la derecha.
+3. Púlsala para desplazarte hasta tu punto, o ignórala y se desvanece.
+4. El resto está en el panel: **Seguir leyendo**, **Pausar en este sitio**, **Borrar esta página** y la lista de historial.
 
-```bash
-npm install
-npm test            # node --test (99 aserciones)
-npm run build       # minificar + zip → publish/readpos-v{version}.zip
-npm run locales     # regenerar los seis idiomas
-npm run icons       # regenerar iconos
-npm run shoot       # capturas para la tienda (requiere Chrome)
-```
+### Guardar una escena (Pro)
+
+1. Deja la página en el estado que quieres conservar.
+2. Abre el panel, pulsa **Guardar escena**, ponle nombre y guarda. O usa el atajo si lo activaste.
+3. Después, en la misma página, el panel lista todas las escenas guardadas allí.
+4. Pulsa **Restaurar**. Un panel muestra qué se va a sobrescribir; confirma y vuelven todos los campos y la posición.
+
+La escena sigue siendo editable: renómbrala o bórrala desde su fila cuando quieras.
+
+### Gestionar los datos
+
+- **Fila del historial** — un clic reabre esa página; el icono de papelera quita solo ese registro.
+- **Sección de datos** — muestra cuántas posiciones y escenas hay guardadas y cuánto ocupan.
+- **Borrar todas las posiciones** / **Eliminar todas las escenas** — ambos piden confirmación.
+- **Exportar** escribe posiciones (y escenas con Pro) en un archivo JSON. **Importar** combina en lugar de reemplazar y conserva el registro más reciente cuando ambos lados conocen la misma página.
+
+### Ajustes
+
+- **Gratis** — pausar un sitio, borrar una página, exportar e importar.
+- **Pro** — retardo, desvanecido y umbral de la píldora; dominios y expresiones regulares excluidas; escenas por página; campos de solo lectura; atajo de teclado.
+
+En Firefox el atajo opcional se define en el Gestor de complementos: **about:addons → engranaje → Gestionar atajos de la extensión**.
+
+## Navegadores
+
+| Navegador | Versión mínima |
+|---|---|
+| Chrome | 116 |
+| Edge | 116 |
+| Firefox | 140 |
+
+La versión de Firefox está en `codeup/VKT-ReadPos`. Una exportación JSON de una se importa sin cambios en la otra.
+
+## Enlaces
+
+- Sitio web: https://annmax1983.com/extensions/readpos
+- Política de privacidad: [privacy-policy.html](../privacy-policy.html)

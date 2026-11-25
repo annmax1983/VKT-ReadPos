@@ -2,24 +2,35 @@
 
 English | [中文](languages/README_zh.md) | [日本語](languages/README_ja.md) | [Deutsch](languages/README_de.md) | [Español](languages/README_es.md) | [Français](languages/README_fr.md)
 
-Reading position memory and page scene snapshots for Chrome, Edge and Firefox. Every long page remembers where you stopped; short pages that hold state — a dashboard, a half-filled form, a ticket you were writing — can be saved as a *scene* and brought back whole.
+Reading position memory and page scenes for Chrome, Edge and Firefox. Every long page remembers where you stopped; a page that holds state — a dashboard, a half-filled form, a ticket you were writing — can be saved as a *scene* and brought back whole.
 
-Everything is computed and stored on your device. No account, no sync service, no telemetry. The only network request this extension ever makes is licence validation.
+Install: https://annmax1983.com/extensions/readpos
 
-## Highlights (free)
+## Features
 
-- **Position memory, per page** — the scroll offset is written 600 ms after you stop scrolling and again when the tab is hidden or closed. No polling, no per-pixel writes.
-- **The continue pill** — reopening a page shows a small control in the bottom-right corner: *Continue where you left off · 62%*. One click smooth-scrolls back. It never scrolls on its own.
-- **Quiet by design** — the pill fades after a few seconds; moving the pointer into the bottom-right corner brings it back. Nothing else is ever drawn on the page.
+### Reading positions (free)
+
+- **Per page, automatically** — the scroll offset is recorded 600 ms after you stop scrolling, and again when the tab is hidden or closed.
+- **The continue pill** — reopening a page shows *Continue where you left off · 62%* in the bottom-right corner. One click smooth-scrolls back. It never scrolls on its own.
+- **Quiet** — the pill fades after a few seconds; moving the pointer into the bottom-right corner brings it back. Nothing else is drawn on the page.
 - **Short pages stay quiet** — a position below the trigger distance (600 px by default) is not offered.
-- **Per-site pause, clear this page** — both one click away in the popup.
+- **Pause a site, clear a page** — one click each, in the popup.
 - **20 pages of history** — the popup lists recent positions with the percentage reached; click a row to reopen it.
-- **SPA routes tracked separately** — `/app/inbox` and `/app/settings` are different pages. Hash routers (`#/route`) count too.
-- **Lazy-loaded pages handled** — if the saved offset is beyond the current document height, the restore retries twice and then gives up silently rather than fighting the page.
-- **Your data, portable** — JSON export and import, free.
-- **Ask before restoring** — a scene restore always shows what will be overwritten first. On by default, and free: a confirmation step is not an upsell.
+- **SPA routes counted separately** — `/app/inbox` and `/app/settings` are different pages. Hash routers (`#/route`) too.
+- **Lazy pages** — if the saved offset is beyond the current document height, the restore retries twice and then gives up quietly.
+- **Portable** — JSON export and import, free.
+- **Confirm before restoring** — a scene restore always lists what will be overwritten first. Free and on by default.
 
-## Pro (US$9.99, one-time)
+### Pro
+
+- **Page scenes** — save the scroll offset plus every form field on the page under a name you choose, and put them all back later.
+- **500 pages of history** instead of 20.
+- **Pill timing** — delay, fade and trigger distance all adjustable.
+- **Ignore list** — domains and regular expressions.
+- **Several named scenes per page** — 1 to 20 each.
+- **Read-only fields** optionally included in a scene.
+- **Keyboard shortcut** to save a scene.
+- **Scenes in the export** — the JSON file carries positions and scenes.
 
 | | Free | Pro |
 |---|---|---|
@@ -32,10 +43,10 @@ Everything is computed and stored on your device. No account, no sync service, n
 | Multiple named scenes per page | — | ✅ |
 | Scene cap per page | — | configurable (1–20) |
 | Read-only fields included | — | optional |
-| Keyboard shortcut to save | — | optional (off by default) |
-| JSON export / import | ✅ positions | ✅ positions + scenes |
+| Save with a keyboard shortcut | — | optional (off by default) |
+| JSON export / import | positions | positions + scenes |
 
-One licence activates on two browsers. Removing the licence frees the slot. Validation is throttled to once every two hours, works offline from the cached licence, and a failed check never locks you out.
+One licence activates on two browsers. Removing the licence frees the slot.
 
 ## What a scene captures
 
@@ -48,100 +59,58 @@ One licence activates on two browsers. Removing the licence frees the slot. Vali
 | `details` | open / closed |
 | scroll position | yes, same retry logic as the pill |
 
-Values are written through the native property setter and followed by `input` and `change` events, so React and Vue notice them. Fields are located by a structural path first, then by `id`, then by `name` — a page that reflows slightly still restores.
+Values go back through the native property setter and are followed by `input` and `change` events, so React and Vue notice them. Fields are found by structural path first, then by `id`, then by `name`, so a page that reflows slightly still restores.
 
-### What it deliberately will not touch
+### Not captured
 
-- **Passwords, files, hidden inputs, one-time codes, card numbers, CVV, IBAN, SSN.** Excluded at capture time, not filtered at restore time. There is no setting to enable them.
-- **Read-only and disabled fields**, unless you switch read-only on (Pro). Computed fields are noise in a scene.
-- **`role="tab"` panels.** This was in the original plan and is gone: tab state is driven by the framework, so writing `aria-selected` back either does nothing or triggers navigation. A feature that looks like it works but does not is worse than no feature.
-- **`contenteditable` editors.** There is no reliable, framework-safe way to put text back into a rich editor. Left out rather than half-done.
-- **Fields inside shadow roots and cross-origin iframes.** A stable path cannot be built across those boundaries, so they are skipped instead of being guessed at.
+- **Passwords, files, hidden inputs, one-time codes, card numbers, CVV, IBAN, SSN** — excluded at capture time. There is no setting that re-enables them.
+- **Read-only and disabled fields** — unless you switch read-only on (Pro).
+- **`role="tab"` panels, `contenteditable` editors** — no framework-safe way to put the state back, so they are left alone rather than half-done.
+- **Fields inside shadow roots and cross-origin iframes** — no stable path can be built across those boundaries.
 
-## How it works
+## Usage
 
-1. Scroll any page. ~600 ms after you stop, the offset is written to extension storage (`chrome.storage.local`, `browser.storage.local` on Firefox) under a normalised URL key.
-2. Come back to the page. If the saved offset is past the trigger distance and you are still near the top, the pill appears after 600 ms.
-3. Click it — the page smooth-scrolls to your spot. If the page has grown since (lazy images), the restore retries and then stays quiet.
-4. On Pro, **Save scene** in the popup (or the optional shortcut) captures scroll + fields. **Restore** shows a confirmation panel listing what will be overwritten, then writes everything back.
+### Reading
 
-## Privacy
+1. Scroll any page. Stop, and the position is remembered.
+2. Come back to that page. If you are still near the top, the pill appears in the bottom-right corner after a moment.
+3. Click it to smooth-scroll to your spot, or ignore it and it fades.
+4. Open the popup for the rest: **Continue reading**, **Pause on this site**, **Clear this page**, and the history list.
 
-- Reading positions, scenes and settings live in extension storage (`chrome.storage.local`, `browser.storage.local` on Firefox). Nothing is uploaded.
-- No analytics, no telemetry, no accounts.
-- Captured values never leave the browser: restoring a scene is a local read and a local write.
-- The only network call is licence activation/validation against `api.annmax1983.com`, and only after you enter a key.
+### Saving a scene (Pro)
 
-## Permissions
+1. Put the page in the state you want to keep.
+2. Open the popup, click **Save scene**, give it a name, save. Or press the keyboard shortcut if you enabled it.
+3. Later, on the same page, the popup lists every scene saved there.
+4. Click **Restore**. A panel lists what will be overwritten — confirm, and every field and the scroll offset come back.
 
-| Permission | Why |
+The scene stays editable: rename it or delete it from its row at any time.
+
+### Managing data
+
+- **History row** — click to reopen that page; the bin icon removes just that record.
+- **Data section** — shows how many positions and scenes are stored and how much space they take.
+- **Clear all positions** / **Delete all scenes** — both ask for confirmation first.
+- **Export** writes positions (and scenes on Pro) to a JSON file. **Import** merges instead of replacing and keeps the newer record when both sides know the same page.
+
+### Settings
+
+- **Free** — pause a site, clear a page, export and import.
+- **Pro** — pill delay, fade and trigger distance; ignore domains and regular expressions; scenes per page; read-only fields; keyboard shortcut.
+
+On Firefox the optional shortcut is set in the Add-ons Manager: **about:addons → gear icon → Manage Extension Shortcuts**.
+
+## Browsers
+
+| Browser | Minimum |
 |---|---|
-| `storage` | Positions, scenes, settings, licence state — all local |
-| `http://*/*`, `https://*/*` | The content script has to exist on every page **before** you scroll, otherwise there is nothing to remember. Unlike a bookmark tool, this one cannot wait to be asked per site. It is the reason this extension asks for broad page access, and the store listing says so plainly. |
+| Chrome | 116 |
+| Edge | 116 |
+| Firefox | 140 |
 
-No `tabs`, no `scripting`, no `debugger`, no `activeTab`: tab metadata comes from the host permission, and the content script is declarative. Nothing runs on `chrome://`, `edge://` or `about:` pages, `file://` or another extension's pages.
-
-## Supported browsers
-
-| Browser | Where the build lives | Minimum |
-|---|---|---|
-| Chrome | this repository | Chrome 116 — Manifest V3, `background.service_worker` |
-| Edge | this repository, same package as Chrome | Edge 116 |
-| Firefox | `codeup/VKT-ReadPos` | Firefox 140 — Manifest V3, `background.scripts` |
-
-The two builds are the same extension. `common.js`, `content/content.js`, `popup/`, `_locales/`, the icons and every document in this repository are shared; a JSON export from one imports into the other unchanged. Only three things differ:
-
-- **`manifest.json`** — a background *page* loaded from a script list instead of a service worker, a `browser_specific_settings.gecko` id, and Firefox's data-collection declaration (required by AMO since Firefox 140).
-- **The API namespace** — Firefox gets `browser.*` with promises instead of `chrome.*` with callbacks. That is the only code change; there is no polyfill and no build-time transform.
-- **Packaging** — the Firefox build writes `dist/` plus an unminified source zip, which AMO requires alongside every minified upload.
-
-One user-visible difference: the optional keyboard shortcut is set in Firefox's Add-ons Manager (about:addons → gear icon → Manage Extension Shortcuts) instead of `chrome://extensions/shortcuts`.
-
-## Development
-
-```bash
-npm install         # dev-only: terser, puppeteer-core (screenshots)
-npm test            # node --test — 99 assertions
-npm run build       # minify + zip → publish/readpos-v{version}.zip
-npm run locales     # regenerate _locales/*/messages.json from tools/make-locales.js
-npm run icons       # regenerate icons/*.png + assets/icon-master.png
-npm run shoot       # store screenshots → screenshots/ (needs Chrome)
-npm run e2e         # live browser check of the shipping scripts (needs puppeteer-core)
-```
-
-The Firefox build in `codeup/VKT-ReadPos` has the same scripts, plus `npm run` targets that only make sense there:
-
-```bash
-node scripts/build.js      # dist/ + publish/readpos-v{version}.zip + ...-source.zip (AMO)
-node --test                # 100 assertions against the browser.* promise mocks
-node tools/e2e.js          # 71 assertions in a real browser, against the browser.* mocks
-node tools/firefox-check.js  # installs dist/ into a real Firefox and screenshots the popup
-```
-
-Layout:
-
-```
-manifest.json        MV3; declarative content script on http(s), document_start
-common.js            RP: URL keys, settings, position/scene helpers (pure, unit-tested)
-background.js        service worker: owns all storage, message router, Pro gating
-content/content.js   scroll tracking, the pill, scene capture/restore, confirm panel
-popup/               popup.html / popup.js / popup.css
-license.js           LicenseManager IIFE (api.annmax1983.com/api/license)
-_locales/            en, zh_CN, ja, de, es, fr — 105 keys, identical key sets
-tools/               locale generator, icon renderer, screenshot harness
-index.html            landing page — workspace standard template, 6 languages
-privacy-policy.html   policy page, 8 sections × 6 languages (family template)
-store-listing/        six CRLF text files, one per store language (Chrome / Edge)
-```
-
-The Firefox store copy is not in this repository: AMO takes one listing per add-on, so it is a single six-language `store-listing/description.txt` in `codeup/VKT-ReadPos`, next to `amo-reviewer-notes.txt` and the release notes.
-
-Two details that are easy to break:
-
-- The content script runs at `document_start` and wraps `history.pushState`/`replaceState` **before** the page's own router does, or the first SPA navigation is missed.
-- `PILL` and the confirm panel live in closed shadow roots. A page stylesheet that sets `button { … }` globally would otherwise deform both.
+The Firefox build lives in `codeup/VKT-ReadPos`. A JSON export from one imports into the other unchanged.
 
 ## Links
 
-- Website: https://annmax1983.com
-- Licence & pricing: https://annmax1983.com/checkout?plugin=readpos
+- Website: https://annmax1983.com/extensions/readpos
+- Privacy policy: [privacy-policy.html](privacy-policy.html)
